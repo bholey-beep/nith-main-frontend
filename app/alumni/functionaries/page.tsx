@@ -1,456 +1,213 @@
 'use client';
-import React from 'react';
-import { motion } from 'framer-motion';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 import Header31 from '@/app/components/header3';
 import Footer from '@/app/components/footer';
-import { CreditCard, AlertCircle, Mail, Home } from 'lucide-react';
+import { Users, Phone, Mail, Home, ChevronRight } from 'lucide-react';
 
-const fadeUp = {
-  hidden: {
-    opacity: 0,
-    y: 30,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-  },
-};
+interface Row {
+  id: number;
+  sl_no: string;
+  name_en: string;
+  name_hn: string;
+  responsibility_en: string;
+  responsibility_hn: string;
+  phone: string;
+  email: string;
+  section_title_en: string;
+  section_title_hn: string;
+}
 
-const fadeInScale = {
-  hidden: {
-    opacity: 0,
-    scale: 0.95,
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-  },
-};
+interface Section {
+  title_en: string;
+  title_hn: string;
+  members: Row[];
+}
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-// Certificate fees data
-const certificateFees = [
+const INITIAL_DATA: Section[] = [
   {
-    slNo: 1,
-    name: 'Bonafide Certificate',
-    fee: '₹500',
+    title_en: 'Dean and Associate Dean (Alumni & Resources)',
+    title_hn: 'डीन और एसोसिएट डीन (पूर्व छात्र और संसाधन)',
+    members: [
+        { id: -1, sl_no: '1', name_en: 'Prof. Ashwani Kumar Chandel', name_hn: 'प्रो. अश्विनी कुमार चंदेल', responsibility_en: 'Dean', responsibility_hn: 'डीन', phone: '254054', email: 'dar@nith.ac.in', section_title_en: 'Dean and Associate Dean (Alumni & Resources)', section_title_hn: 'डीन और एसोसिएट डीन (पूर्व छात्र और संसाधन)' },
+        { id: -2, sl_no: '2', name_en: 'Dr. Gargi Sharma', name_hn: 'डॉ. गार्गी शर्मा', responsibility_en: 'Associate Dean', responsibility_hn: 'एसोसिएट डीन', phone: '254536', email: 'gargi@nith.ac.in', section_title_en: 'Dean and Associate Dean (Alumni & Resources)', section_title_hn: 'डीन और एसोसिएट डीन (पूर्व छात्र और संसाधन)' },
+        { id: -3, sl_no: '3', name_en: 'Dr. Somesh Kumar Sharma', name_hn: 'डॉ. सोमेश कुमार शर्मा', responsibility_en: 'Associate Dean (Resource Generation & Industrialization)', responsibility_hn: 'एसोसिएट डीन (संसाधन सृजन और औद्योगिकीकरण)', phone: '254732', email: 'somesh@nith.ac.in', section_title_en: 'Dean and Associate Dean (Alumni & Resources)', section_title_hn: 'डीन और एसोसिएट डीन (पूर्व छात्र और संसाधन)' },
+    ]
   },
   {
-    slNo: 2,
-    name: 'Character Certificate',
-    fee: '₹500',
+    title_en: 'Alumni Association',
+    title_hn: 'पूर्व छात्र संघ',
+    members: [
+        { id: -4, sl_no: '1', name_en: 'Dr. Jyoti Srivastava', name_hn: 'डॉ. ज्योति श्रीवास्तव', responsibility_en: 'Faculty Incharge', responsibility_hn: 'संकाय प्रभारी', phone: '254401', email: 'jyoti.s@nith.ac.in', section_title_en: 'Alumni Association', section_title_hn: 'पूर्व छात्र संघ' },
+        { id: -5, sl_no: '2', name_en: 'Dr. Vandana Sharma', name_hn: 'डॉ. वंदना शर्मा', responsibility_en: 'Faculty Incharge', responsibility_hn: 'संकाय प्रभारी', phone: '254920', email: 'vandna@nith.ac.in', section_title_en: 'Alumni Association', section_title_hn: 'पूर्व छात्र संघ' },
+    ]
   },
   {
-    slNo: 3,
-    name: 'Migration Certificate',
-    fee: '₹2,000',
+    title_en: 'Resource Generation',
+    title_hn: 'संसाधन सृजन',
+    members: [
+        { id: -6, sl_no: '1', name_en: 'Dr. Amit Kaul', name_hn: 'डॉ. अमित कौल', responsibility_en: 'Faculty Incharge', responsibility_hn: 'संकाय प्रभारी', phone: '254544', email: 'amitkaul@nith.ac.in', section_title_en: 'Resource Generation', section_title_hn: 'संसाधन सृजन' },
+    ]
   },
   {
-    slNo: 4,
-    name: 'Transcript (within India)',
-    fee: '₹2,000 per copy',
-  },
-  {
-    slNo: 5,
-    name: 'Transcript (outside India)',
-    fee: '₹5,000 per copy',
-  },
-  {
-    slNo: 6,
-    name: 'Misc. (Backlog, Rank, Verification/Attestation of DMC/Degree etc.)',
-    fee: '₹500 each',
-  },
-  {
-    slNo: 7,
-    name: 'Duplicate Grade Card / Duplicate Provisional Degree / Degree Certificate',
-    fee: '₹1,000 each',
-  },
-  {
-    slNo: 8,
-    name: 'Medium of Instruction Certificate',
-    fee: '₹500',
-  },
-  {
-    slNo: 9,
-    name: 'Verification of Degree (within India)',
-    fee: '₹1,000',
-  },
-  {
-    slNo: 10,
-    name: 'Verification of Degree (outside India)',
-    fee: '$100',
-  },
-  {
-    slNo: 11,
-    name: 'Verification through Govt./Govt.-Aided Institutions',
-    fee: 'No Charges',
-  },
+    title_en: 'Staff',
+    title_hn: 'कर्मचारी',
+    members: [
+        { id: -7, sl_no: '1', name_en: 'Sh. Sanjay Jamwal', name_hn: 'श्री संजय जमवाल', responsibility_en: 'Deputy Registrar', responsibility_hn: 'उप कुलसचिव', phone: '--', email: '--', section_title_en: 'Staff', section_title_hn: 'कर्मचारी' },
+    ]
+  }
 ];
 
-export default function AlumniAssist() {
+export default function AlumniFunctionaries() {
+  const language = useSelector((state: RootState) => state.language.value);
+  const [sections, setSections] = useState<Section[]>(INITIAL_DATA);
+  const [heading, setHeading] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const hRes = await fetch('http://localhost:4000/api/alumni-functionaries');
+        const hData = await hRes.json();
+        setHeading(hData);
+
+        const lRes = await fetch('http://localhost:4000/api/alumni-functionaries/list');
+        const lData = await lRes.json();
+        
+        if (Array.isArray(lData) && lData.length > 0) {
+            const sectionsMap: { [key: string]: Section } = {};
+            lData.forEach((row: any) => {
+              const key = row.section_title_en;
+              if (!sectionsMap[key]) {
+                sectionsMap[key] = {
+                  title_en: row.section_title_en,
+                  title_hn: row.section_title_hn,
+                  members: []
+                };
+              }
+              sectionsMap[key].members.push(row);
+            });
+            setSections(Object.values(sectionsMap));
+        }
+      } catch (err) {
+        console.error('Error fetching functionaries:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-white">
+    <>
       <Header31 />
-
-      {/* Breadcrumb */}
-      <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link
-              href="/"
-              className="hover:text-[#800000] transition-colors duration-200"
-            >
-              Home
-            </Link>
-            <span>›</span>
-            <span className="text-gray-400">Alumni</span>
-            <span>›</span>
-            <span className="text-[#800000] font-medium">Alumni Assist</span>
-          </nav>
+      <div className="min-h-screen bg-gray-50 pb-20">
+        {/* Breadcrumb */}
+        <div className="bg-white/80 backdrop-blur-md sticky top-0 z-30 py-4 px-6 md:px-12 border-b border-gray-200">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <nav className="flex items-center space-x-2 text-sm text-gray-600">
+              <Link href="/" className="hover:text-[#631012] transition-colors">{language === 'en' ? 'Home' : 'होम'}</Link>
+              <ChevronRight size={14} className="text-gray-400" />
+              <span className="text-gray-400">{language === 'en' ? 'Alumni' : 'पूर्व छात्र'}</span>
+              <ChevronRight size={14} className="text-gray-400" />
+              <span className="text-[#631012] font-bold tracking-wide uppercase text-xs">{language === 'en' ? 'Functionaries' : 'पदाधिकारी'}</span>
+            </nav>
+          </div>
         </div>
-      </div>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Alumni Assist
-            </h1>
-            <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto">
-              This section provides important procedures, rules, and assistance
-              details for alumni of NIT Hamirpur.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+        {/* Hero Section */}
+        <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-20 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+          <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <motion.h1 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-lg tracking-tight">
+              {heading && heading.title_en ? (language === 'en' ? heading.title_en : heading.title_hn) : (language === 'en' ? 'Alumni Functionaries' : 'पूर्व छात्र पदाधिकारी')}
+            </motion.h1>
+            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto font-light leading-relaxed">
+              {heading && heading.sub_title_en ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'Dean, Associate Dean, Alumni Association, Resource Generation, Staff' : 'डीन, एसोसिएट डीन, पूर्व छात्र संघ, संसाधन सृजन, कर्मचारी')}
+            </motion.p>
+          </div>
+        </section>
 
-      {/* Main Content */}
-      <section className="py-16 md:py-24 px-6 bg-gradient-to-b from-white via-gray-50/30 to-white">
-        <div className="max-w-6xl mx-auto space-y-12">
-          {/* Section 1: Duplicate Degree Certificate */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={fadeInScale}
-            transition={{ duration: 0.5 }}
-            className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-          >
-            <div className="bg-[#800000] px-6 py-4">
-              <h2 className="text-lg md:text-xl font-semibold text-white">
-                Procedure for Issue of Duplicate Degree Certificate
-              </h2>
-            </div>
-            <div className="p-6">
-              <ol className="list-decimal list-inside space-y-3 text-gray-700">
-                <li>
-                  Register an F.I.R. for loss of Detailed Marks Card / Semester
-                  Grade Report / Degree.
-                </li>
-                <li>
-                  After waiting 15 days, advertise the loss in a National daily
-                  newspaper.
-                </li>
-                <li>
-                  Apply with a copy of the newspaper cutting to:
-                  <div className="mt-2 ml-6 text-sm">
-                    <p>
-                      <span className="font-medium">To:</span>{' '}
-                      <a
-                        href="mailto:ar-acad@nith.ac.in"
-                        className="text-[#800000] hover:underline"
-                      >
-                        ar-acad@nith.ac.in
-                      </a>
-                    </p>
-                    <p>
-                      <span className="font-medium">CC:</span>{' '}
-                      <a
-                        href="mailto:certificate-acad@nith.ac.in"
-                        className="text-[#800000] hover:underline"
-                      >
-                        certificate-acad@nith.ac.in
-                      </a>
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  Submit an affidavit on Non-Judicial stamp paper of Rs. 10/-.
-                </li>
-                <li>
-                  Deposit/remit the requisite fee in cash to the Cashier or via
-                  Bank Draft in favour of Registrar, NIT Hamirpur (HP).
-                </li>
-                <li>
-                  Duplicate Degree Certificate will be issued by the Registrar
-                  (or Director-cum-Chairman, Senate in absence).
-                </li>
-                <li>
-                  Duplicate degree will be prepared like the original, with
-                  &quot;Sd/-&quot; in place of signature.
-                </li>
-              </ol>
-            </div>
-          </motion.div>
-
-          {/* Section 2: Duplicate Marks Cards */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={fadeInScale}
-            transition={{ duration: 0.5 }}
-            className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-          >
-            <div className="bg-[#800000] px-6 py-4">
-              <h2 className="text-lg md:text-xl font-semibold text-white">
-                Procedure for Issue of Duplicate Detailed Marks Cards / Semester
-                Grade Reports
-              </h2>
-            </div>
-            <div className="p-6">
-              <ol className="list-decimal list-inside space-y-3 text-gray-700">
-                <li>Issued by the Academic Section.</li>
-                <li>Submission of F.I.R. copy in case of loss.</li>
-                <li>Payment of requisite fee.</li>
-                <li>
-                  Apply to:
-                  <div className="mt-2 ml-6 text-sm">
-                    <p>
-                      <span className="font-medium">To:</span>{' '}
-                      <a
-                        href="mailto:ar-acad@nith.ac.in"
-                        className="text-[#800000] hover:underline"
-                      >
-                        ar-acad@nith.ac.in
-                      </a>
-                    </p>
-                    <p>
-                      <span className="font-medium">CC:</span>{' '}
-                      <a
-                        href="mailto:certificate-acad@nith.ac.in"
-                        className="text-[#800000] hover:underline"
-                      >
-                        certificate-acad@nith.ac.in
-                      </a>
-                    </p>
-                  </div>
-                </li>
-              </ol>
-            </div>
-          </motion.div>
-
-          {/* Section 3: Migration Certificate */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={fadeInScale}
-            transition={{ duration: 0.5 }}
-            className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-          >
-            <div className="bg-[#800000] px-6 py-4">
-              <h2 className="text-lg md:text-xl font-semibold text-white">
-                Procedure for Issue of Migration Certificate
-              </h2>
-            </div>
-            <div className="p-6">
-              <ol className="list-decimal list-inside space-y-3 text-gray-700">
-                <li>Issued by the Academic Section.</li>
-                <li>Submission of application along with requisite fee.</li>
-                <li>
-                  Apply to:
-                  <div className="mt-2 ml-6 text-sm">
-                    <p>
-                      <span className="font-medium">To:</span>{' '}
-                      <a
-                        href="mailto:ar-acad@nith.ac.in"
-                        className="text-[#800000] hover:underline"
-                      >
-                        ar-acad@nith.ac.in
-                      </a>
-                    </p>
-                    <p>
-                      <span className="font-medium">CC:</span>{' '}
-                      <a
-                        href="mailto:certificate-acad@nith.ac.in"
-                        className="text-[#800000] hover:underline"
-                      >
-                        certificate-acad@nith.ac.in
-                      </a>
-                    </p>
-                  </div>
-                </li>
-              </ol>
-            </div>
-          </motion.div>
-
-          {/* Section 4: Charges Table */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={fadeInScale}
-            transition={{ duration: 0.5 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300"
-          >
-            <div className="bg-gradient-to-r from-[#800000] to-[#631012] px-6 py-5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-white" />
-              </div>
-              <h2 className="text-xl md:text-2xl font-bold text-white">
-                Charges for Issue of Certificates / Documents
-              </h2>
-            </div>
-            <div className="p-6 md:p-8">
-              {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="px-4 py-4 text-left text-sm font-bold text-gray-700 border-b-2 border-gray-200 rounded-tl-lg w-20">
-                        Sl. No.
-                      </th>
-                      <th className="px-4 py-4 text-left text-sm font-bold text-gray-700 border-b-2 border-gray-200">
-                        Name of Certificate / Document
-                      </th>
-                      <th className="px-4 py-4 text-right text-sm font-bold text-gray-700 border-b-2 border-gray-200 rounded-tr-lg w-40">
-                        Fee
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {certificateFees.map((item, index) => (
-                      <tr
-                        key={item.slNo}
-                        className={`${
-                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                        } hover:bg-[#800000]/5 transition-colors duration-200`}
-                      >
-                        <td className="px-4 py-4 text-sm text-gray-600 border-b border-gray-100">
-                          {item.slNo}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-gray-700 border-b border-gray-100">
-                          {item.name}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-right font-semibold text-[#800000] border-b border-gray-100">
-                          {item.fee}
-                        </td>
-                      </tr>
+        {/* Main Content */}
+        <section className="py-16 px-6 max-w-7xl mx-auto">
+            {loading ? (
+                <div className="p-20 text-center text-gray-400 bg-white rounded-3xl shadow-xl">
+                    <div className="animate-spin w-10 h-10 border-4 border-[#631012] border-t-transparent rounded-full mx-auto mb-4"></div>
+                    Loading Functionaries...
+                </div>
+            ) : (
+                <div className="space-y-12">
+                    {sections.map((section, sIdx) => (
+                        <motion.div 
+                            key={sIdx}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+                        >
+                            <div className="bg-gradient-to-r from-[#631012] to-[#7a1214] px-8 py-6">
+                                <h2 className="text-2xl font-bold text-white tracking-wide">
+                                    {language === 'en' ? section.title_en : section.title_hn}
+                                </h2>
+                            </div>
+                            
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="bg-gray-50/50 border-b border-gray-100">
+                                            <th className="px-8 py-5 text-left text-xs font-bold text-[#631012] uppercase tracking-widest w-20">Sl. No.</th>
+                                            <th className="px-8 py-5 text-left text-xs font-bold text-[#631012] uppercase tracking-widest">{language === 'en' ? 'Name' : 'नाम'}</th>
+                                            <th className="px-8 py-5 text-left text-xs font-bold text-[#631012] uppercase tracking-widest">{language === 'en' ? 'Responsibility' : 'जिम्मेदारी'}</th>
+                                            <th className="px-8 py-5 text-left text-xs font-bold text-[#631012] uppercase tracking-widest">{language === 'en' ? 'Contact Details' : 'संपर्क विवरण'}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {section.members.map((member, mIdx) => (
+                                            <tr key={member.id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="px-8 py-6 text-sm font-bold text-gray-400">{member.sl_no}</td>
+                                                <td className="px-8 py-6">
+                                                    <div className="text-lg font-bold text-gray-900 leading-tight">
+                                                        {language === 'en' ? member.name_en : member.name_hn}
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#631012]/5 text-[#631012] text-sm font-semibold">
+                                                        {language === 'en' ? member.responsibility_en : member.responsibility_hn}
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex flex-col gap-2">
+                                                        {member.phone && member.phone !== '--' && (
+                                                            <div className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#631012] transition-colors">
+                                                                <Phone size={14} className="text-gray-400" />
+                                                                <span>{member.phone}</span>
+                                                            </div>
+                                                        )}
+                                                        {member.email && member.email !== '--' && (
+                                                            <div className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#631012] transition-colors">
+                                                                <Mail size={14} className="text-gray-400" />
+                                                                <a href={`mailto:${member.email}`} className="font-medium underline decoration-gray-200 underline-offset-4">{member.email}</a>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </motion.div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Stacked View */}
-              <div className="md:hidden space-y-4">
-                {certificateFees.map((item) => (
-                  <div
-                    key={item.slNo}
-                    className="bg-gray-50 rounded-xl p-4 border border-gray-100"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-500">
-                        #{item.slNo}
-                      </span>
-                      <span className="text-sm font-bold text-[#800000]">
-                        {item.fee}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700">{item.name}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Section 5: Important Note */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={fadeInScale}
-            transition={{ duration: 0.5 }}
-            className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl shadow-lg border border-amber-200 overflow-hidden"
-          >
-            <div className="p-6 md:p-8">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-6 h-6 text-amber-600" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-amber-800 mb-2">
-                    Important Note
-                  </h3>
-                  <p className="text-amber-900/80 leading-relaxed">
-                    These formalities are not required in case of application
-                    due to mutilation of documents. In such cases, the applicant
-                    must attach the mutilated certificate/document along with
-                    the application and requisite fee.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Section 6: Campus Stay Assistance */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={fadeInScale}
-            transition={{ duration: 0.5 }}
-            className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-          >
-            <div className="bg-[#800000] px-6 py-4">
-              <h2 className="text-lg md:text-xl font-semibold text-white">
-                Campus Stay Assistance for Alumni
-              </h2>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-700 mb-5">
-                Alumni visiting the NITH campus and requiring stay assistance
-                may contact:
-              </p>
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="w-12 h-12 rounded-full bg-[#800000] flex items-center justify-center flex-shrink-0">
-                  <Home className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    Warden, Satpura Hostel
-                  </p>
-                  <a
-                    href="mailto:wardensatpura@nith.ac.in"
-                    className="inline-flex items-center gap-2 text-[#800000] hover:underline text-sm mt-1"
-                  >
-                    <Mail className="w-4 h-4" />
-                    wardensatpura@nith.ac.in
-                  </a>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
+            )}
+        </section>
+      </div>
       <Footer />
-    </div>
+    </>
   );
 }

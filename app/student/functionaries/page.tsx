@@ -1,386 +1,302 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Header31 from '@/app/components/header3';
 import Footer from '@/app/components/footer';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
+
+interface Functionary {
+  id: number;
+  category_en: string;
+  category_hn: string;
+  name_en: string;
+  name_hn: string;
+  responsibility_en: string;
+  responsibility_hn: string;
+  phone: string;
+  mobile: string;
+  email: string;
+}
+
+interface HeadingData {
+  title_en: string;
+  title_hn: string;
+  sub_title_en: string;
+  sub_title_hn: string;
+}
+
+const FALLBACK_HEADING: HeadingData = {
+  title_en: 'Student Welfare Functionaries',
+  title_hn: 'छात्र कल्याण पदाधिकारी',
+  sub_title_en: 'Contact details and responsibilities of student welfare functionaries',
+  sub_title_hn: 'छात्र कल्याण पदाधिकारियों के संपर्क विवरण और जिम्मेदारियाँ',
+};
+
+// Fallbacks matching static data bilingually
+const FALLBACK_LIST: Functionary[] = [
+  // Dean & Senior Functionaries
+  {
+    id: 1,
+    category_en: "Dean & Senior Functionaries",
+    category_hn: "डीन और वरिष्ठ पदाधिकारी",
+    name_en: "Prof. Y. D. Sharma, DoMSC",
+    name_hn: "प्रो. वाई. डी. शर्मा, गणित और वैज्ञानिक संगणना विभाग",
+    responsibility_en: "Dean (SW)",
+    responsibility_hn: "डीन (छात्र कल्याण)",
+    phone: "254326",
+    mobile: "9418153838",
+    email: "dsw@nith.ac.in, yds@nith.ac.in"
+  },
+  {
+    id: 2,
+    category_en: "Dean & Senior Functionaries",
+    category_hn: "डीन और वरिष्ठ पदाधिकारी",
+    name_en: "Dr. Pardeep Singh, DoCSE",
+    name_hn: "डॉ. प्रदीप सिंह, कंप्यूटर विज्ञान और इंजीनियरिंग विभाग",
+    responsibility_en: "Associate Dean (SA&S)",
+    responsibility_hn: "एसोसिएट डीन (छात्र गतिविधियां और खेल)",
+    phone: "254436",
+    mobile: "9459458759",
+    email: "ad_sas@nith.ac.in, pardeep@nith.ac.in"
+  },
+  {
+    id: 3,
+    category_en: "Dean & Senior Functionaries",
+    category_hn: "डीन और वरिष्ठ पदाधिकारी",
+    name_en: "Dr. Sunil Sharma, DoCE",
+    name_hn: "डॉ. सुनील शर्मा, सिविल इंजीनियरिंग विभाग",
+    responsibility_en: "Associate Dean (SD&C)",
+    responsibility_hn: "एसोसिएट डीन (छात्र अनुशासन और परामर्श)",
+    phone: "254316",
+    mobile: "9459117100",
+    email: "sunils@nith.ac.in"
+  },
+  {
+    id: 4,
+    category_en: "Dean & Senior Functionaries",
+    category_hn: "डीन और वरिष्ठ पदाधिकारी",
+    name_en: "Dr. Subit Kumar Jain",
+    name_hn: "डॉ. सुबित कुमार जैन",
+    responsibility_en: "FI (Student Welfare Scheme)",
+    responsibility_hn: "संकाय प्रभारी (छात्र कल्याण योजना)",
+    phone: "254101",
+    mobile: "9218226102",
+    email: "jain.subit@nith.ac.in"
+  },
+  {
+    id: 5,
+    category_en: "Dean & Senior Functionaries",
+    category_hn: "डीन और वरिष्ठ पदाधिकारी",
+    name_en: "Dr. Kuldeep Kr. Sharma, DoPPS",
+    name_hn: "डॉ. कुलदीप कुमार शर्मा, भौतिक और फोटोनिक्स विज्ञान विभाग",
+    responsibility_en: "Chief Warden (Hostels)",
+    responsibility_hn: "मुख्य वार्डन (छात्रावास)",
+    phone: "254850",
+    mobile: "9418780275",
+    email: "cw@nith.ac.in"
+  },
+
+  // Nodal Officers
+  {
+    id: 6,
+    category_en: "Nodal Officers",
+    category_hn: "नोडल अधिकारी",
+    name_en: "Dr. Sandeep Sharma, DoCHE",
+    name_hn: "डॉ. संदीप शर्मा, रासायनिक इंजीनियरिंग विभाग",
+    responsibility_en: "Swachh Bharat Abhiyan",
+    responsibility_hn: "स्वच्छ भारत अभियान",
+    phone: "254924",
+    mobile: "9418000416",
+    email: "sandeep@nith.ac.in"
+  },
+  {
+    id: 7,
+    category_en: "Nodal Officers",
+    category_hn: "नोडल अधिकारी",
+    name_en: "Dr. Gargi Khanna, DoECE",
+    name_hn: "डॉ. गार्गी खन्ना, इलेक्ट्रॉनिक्स और संचार इंजीनियरिंग विभाग",
+    responsibility_en: "MeitY-Scholarship",
+    responsibility_hn: "इलेक्ट्रॉनिक्स और सूचना प्रौद्योगिकी मंत्रालय छात्रवृत्ति",
+    phone: "254634",
+    mobile: "98058 70101",
+    email: "krishan_rathod@nith.ac.in"
+  },
+  {
+    id: 8,
+    category_en: "Nodal Officers",
+    category_hn: "नोडल अधिकारी",
+    name_en: "Dr. Neetu Kapoor, DoARCH",
+    name_hn: "डॉ. नीतू कपूर, वास्तुकला विभाग",
+    responsibility_en: "Institute Magazine & News Bulletin",
+    responsibility_hn: "संस्थान पत्रिका और समाचार बुलेटिन",
+    phone: "254930",
+    mobile: "7018302021",
+    email: "neetu@nith.ac.in"
+  },
+  {
+    id: 9,
+    category_en: "Nodal Officers",
+    category_hn: "नोडल अधिकारी",
+    name_en: "Dr. Arun Kumar Yadav, DoCSE",
+    name_hn: "डॉ. अरुण कुमार यादव, कंप्यूटर विज्ञान और इंजीनियरिंग विभाग",
+    responsibility_en: "Equal Opportunity Cell",
+    responsibility_hn: "समान अवसर प्रकोष्ठ",
+    phone: "254402",
+    mobile: "8076374837",
+    email: "ayadav@nith.ac.in"
+  },
+  {
+    id: 10,
+    category_en: "Nodal Officers",
+    category_hn: "नोडल अधिकारी",
+    name_en: "Dr. Mani Verma, SMO",
+    name_hn: "डॉ. मणि वर्मा, वरिष्ठ चिकित्सा अधिकारी",
+    responsibility_en: "Red Ribbon Club",
+    responsibility_hn: "रेड रिबन क्लब",
+    phone: "254690",
+    mobile: "7018806030",
+    email: "doctor@nith.ac.in"
+  },
+  {
+    id: 11,
+    category_en: "Nodal Officers",
+    category_hn: "नोडल अधिकारी",
+    name_en: "Dr. Arun Kumar Yadav, DoCSE",
+    name_hn: "डॉ. अरुण कुमार यादव, कंप्यूटर विज्ञान और इंजीनियरिंग विभाग",
+    responsibility_en: "Liaison O/NO Visually Challenged PwD",
+    responsibility_hn: "संपर्क अधिकारी/नोडल अधिकारी (दृष्टिबाधित और दिव्यांग)",
+    phone: "254402",
+    mobile: "8076374837",
+    email: "ayadav@nith.ac.in"
+  },
+  {
+    id: 12,
+    category_en: "Nodal Officers",
+    category_hn: "नोडल अधिकारी",
+    name_en: "Dr. Ajoy Debberma, DoME",
+    name_hn: "डॉ. अजय देबबर्मा, मैकेनिकल इंजीनियरिंग विभाग",
+    responsibility_en: "Jan Jatiya Gaurav Diwas (JJGD)",
+    responsibility_hn: "जन जातीय गौरव दिवस",
+    phone: "254702",
+    mobile: "9402153595",
+    email: "--"
+  },
+
+  // Staff
+  {
+    id: 50,
+    category_en: "Staff",
+    category_hn: "कर्मचारी",
+    name_en: "Sh. Raj Kumar",
+    name_hn: "श्री राज कुमार",
+    responsibility_en: "Sr. Assistant",
+    responsibility_hn: "वरिष्ठ सहायक",
+    phone: "254084",
+    mobile: "--",
+    email: "rkverma@nith.ac.in"
+  },
+  {
+    id: 51,
+    category_en: "Staff",
+    category_hn: "कर्मचारी",
+    name_en: "Sh. Ravi Das",
+    name_hn: "श्री रवि दास",
+    responsibility_en: "Junior Assistant",
+    responsibility_hn: "कनिष्ठ सहायक",
+    phone: "254084",
+    mobile: "--",
+    email: "ravidasa@nith.ac.in"
+  },
+  {
+    id: 52,
+    category_en: "Staff",
+    category_hn: "कर्मचारी",
+    name_en: "Sh. Jiwan Kumar",
+    name_hn: "श्री जीवन कुमार",
+    responsibility_en: "Office Attendant SG-II",
+    responsibility_hn: "कार्यालय परिचारक एसजी-II",
+    phone: "--",
+    mobile: "--",
+    email: "--"
+  }
+];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0 },
 };
 
+const CATEGORIES_MAPPING = [
+  { en: "Dean & Senior Functionaries", hn: "डीन और वरिष्ठ पदाधिकारी" },
+  { en: "Nodal Officers", hn: "नोडल अधिकारी" },
+  { en: "Faculty In-Charge / Assistant Faculty In-Charge", hn: "संकाय प्रभारी / सहायक संकाय प्रभारी" },
+  { en: "Staff", hn: "कर्मचारी" }
+];
+
 export default function Page() {
-  const entries = [
-    [
-      'Prof. Y. D. Sharma, DoMSC',
-      'Dean (SW)',
-      '254326',
-      '9418153838',
-      'dsw@nith.ac.in, yds@nith.ac.in',
-    ],
-    [
-      'Dr. Pardeep Singh, DoCSE',
-      'Associate Dean (SA&S)',
-      '254436',
-      '9459458759',
-      'ad_sas@nith.ac.in, pardeep@nith.ac.in',
-    ],
-    [
-      'Dr. Sunil Sharma, DoCE',
-      'Associate Dean (SD&C)',
-      '254316',
-      '9459117100',
-      'sunils@nith.ac.in',
-    ],
-    [
-      'Dr. Subit Kumar Jain',
-      'FI (Student Welfare Scheme)',
-      '254101',
-      '9218226102',
-      'jain.subit@nith.ac.in',
-    ],
-    [
-      'Dr. Kuldeep Kr. Sharma, DoPPS',
-      'Chief Warden (Hostels)',
-      '254850',
-      '9418780275',
-      'cw@nith.ac.in',
-    ],
-  ];
+  const language = useSelector((state: RootState) => state.language.value);
+  const isHindi = language === 'hi';
 
-  const nodal = [
-    [
-      'Dr. Sandeep Sharma, DoCHE',
-      'Swachh Bharat Abhiyan',
-      '254924',
-      '9418000416',
-      'sandeep@nith.ac.in',
-    ],
-    [
-      'Dr. Gargi Khanna, DoECE',
-      'MeitY-Scholarship',
-      '254634',
-      '98058 70101',
-      'krishan_rathod@nith.ac.in',
-    ],
-    [
-      'Dr. Neetu Kapoor, DoARCH',
-      'Institute Magazine & News Bulletin',
-      '254930',
-      '7018302021',
-      'neetu@nith.ac.in',
-    ],
-    [
-      'Dr. Arun Kumar Yadav, DoCSE',
-      'Equal Opportunity Cell',
-      '254402',
-      '8076374837',
-      'ayadav@nith.ac.in',
-    ],
-    [
-      'Dr. Mani Verma, SMO',
-      'Red Ribbon Club',
-      '254690',
-      '7018806030',
-      'doctor@nith.ac.in',
-    ],
-    [
-      'Dr. Arun Kumar Yadav, DoCSE',
-      'Liaison O/NO Visually Challenged PwD',
-      '254402',
-      '8076374837',
-      'ayadav@nith.ac.in',
-    ],
-    [
-      'Dr. Ajoy Debberma, DoME',
-      'Jan Jatiya Gaurav Diwas (JJGD)',
-      '254702',
-      '9402153595',
-      '--',
-    ],
-  ];
+  const [heading, setHeading] = useState<HeadingData>(FALLBACK_HEADING);
+  const [functionaries, setFunctionaries] = useState<Functionary[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const faculty = [
-    [
-      'Dr. Rajeev Kumar, DoCSE',
-      'FI (Cultural Activities and Clubs)',
-      '254434',
-      '9418299787',
-      'rajeev@nith.ac.in',
-    ],
-    [
-      'Dr. Zareena J.M., DoHSS',
-      'Female FI (Cultural)',
-      '254100',
-      '9959255502',
-      'zareena@nith.ac.in',
-    ],
-    [
-      'Dr. Swaraj Chowdhury, DoCE',
-      'AFI (Cultural Activity & Clubs) - Abhinaya',
-      '254301',
-      '7054259045',
-      'swaraj@nith.ac.in',
-    ],
-    [
-      'Dr. Niharika Gupta, (DoME)',
-      'AFI (Cultural Activities & Clubs) - Naritya',
-      '254702',
-      '9958114561',
-      'niharikagupta@nith.ac.in',
-    ],
-    [
-      'Dr. Ajay Kumar, Mallick, (DoCSE)',
-      'AFI (Cultural Activity & Clubs) - Sangeet',
-      '254401',
-      '9572189202',
-      'ajaymallick@nith.ac.in',
-    ],
-    [
-      'Dr. Meghana Sharma, (DoCE)',
-      'AFI (Cultural Activity & Clubs) - Sahitva Kala',
-      '254301',
-      '9785121383',
-      'meghnas@nith.ac.in',
-    ],
-    [
-      'Dr. Jeetendrasingh Maan, (DoMSC)',
-      'AFI (Cultural Activity & Clubs) - Nirvahana',
-      '254101',
-      '9503929060',
-      'jeetendra@nith.ac.in',
-    ],
-    [
-      'Dr. Rakesh Sharma, DoECE',
-      'FI (Technical Activities)',
-      '254644',
-      '9418511300',
-      'rakesh.sharma@nith.ac.in',
-    ],
-    [
-      'Dr. Kirti Mahajan, DoCE',
-      'AFI (Technical Activities)',
-      '254301',
-      '9882089475',
-      'kirtimahajan@nith.ac.in',
-    ],
-    [
-      'Dr. Jai Prakash, DoCHY',
-      'FI (E-Cell)',
-      '254102',
-      '9910533582',
-      'jaip@nith.ac.in',
-    ],
-    [
-      'Dr. Robin Singh Badhoria, CSE',
-      'AFI (E-Cell)',
-      '254401',
-      '9329744955',
-      'robin.bhadoria@nith.ac.in',
-    ],
-    [
-      'Dr. Param Singh, DoME',
-      'FI (Ek Bharat Shreshtha Bharat)',
-      '254702',
-      '9452869752',
-      'psingh@nith.ac.in',
-    ],
-    [
-      'Dr. Sreeram T.S., DoEE',
-      'AFI (Yuva Sangam Ph V)',
-      '254501',
-      '8281486915',
-      'sreeram@nith.ac.in',
-    ],
-    [
-      'Sh. R.K. Jamalta, Sports S.',
-      'FI (Sports & Games Activities)',
-      '254570',
-      '7018709303',
-      'jamalta@nith.ac.in',
-    ],
-    [
-      'Dr. Khalid Mohd. Pandit, DoCSE',
-      'AFI (Indoor Sports)',
-      '254401',
-      '7006414479',
-      'mkhalid@nith.ac.in',
-    ],
-    [
-      'Dr. Manish Kumar Dhiman, DoCHE',
-      'AFI (Outdoor Sports)',
-      '254882',
-      '8473800290',
-      'manishdhiman@nith.ac.in',
-    ],
-    [
-      'Dr. Aditi Chauhan, DoCE',
-      'AFI (Female Sports)',
-      '254301',
-      '8894437498',
-      'aditi@nith.ac.in',
-    ],
-    [
-      'Dr. Sunil Sharma, DoCE',
-      'FI (Student Discipline & Griev. Cell)',
-      '254316',
-      '9459117100',
-      'sunils@nith.ac.in',
-    ],
-    [
-      'Dr. Aman Kumar, DoECE',
-      'FI (Student Discipline)',
-      '254601',
-      '--',
-      'akumar@nith.ac.in',
-    ],
-    [
-      'Dr. Sunder Kala Negi, DoHSS',
-      'FI (Internal Counselling Cell) / Counsellor-cum-Counselling Administrator',
-      '254100',
-      '9015956076',
-      'sunderkala@nith.ac.in',
-    ],
-    [
-      'Dr. Pardeep Singh, DoCSE',
-      'FI (Student Counselling)',
-      '254436',
-      '9459458759',
-      'ad_sas@nith.ac.in',
-    ],
-    [
-      'Dr. (Ms.) Rinshu, DoHSS',
-      'AFI (Student Counselling)',
-      '254101',
-      '7978211574',
-      'rinshu@nith.ac.in',
-    ],
-    [
-      'Dr. Subit Kumar Jain, DoMSC',
-      'FI (Yoga-Men)',
-      '254101',
-      '9218226102',
-      'jain.subit@nith.ac.in',
-    ],
-    [
-      'Dr. Priyanka, DoCSE',
-      'FI (Yoga-Women)',
-      '254401',
-      '9896084010',
-      'dr.priyanka@nith.ac.in',
-    ],
-    [
-      'Dr. Neetu Kapoor, DoARCH',
-      'FI (Institute Magazine & News Bulletin)',
-      '254930',
-      '9418217161',
-      'neetu@nith.ac.in',
-    ],
-    [
-      'Dr. Saurabh Kumar, DoECE',
-      'FI (ISTE)',
-      '254601',
-      '9772976467',
-      'saurabh@nith.ac.in',
-    ],
-    [
-      'Dr. Mahesh Angira, DoECE',
-      'FI (i-STEM)',
-      '254601',
-      '9772976467',
-      'mahesh_angira@nith.ac.in',
-    ],
-    [
-      'Dr. Hammad Saddiqi, DoCHE',
-      'AFI (i-STEM)',
-      '254882',
-      '--',
-      'hammad@nith.ac.in',
-    ],
-    [
-      'Dr. Amrit Kumar Roy, DoCE',
-      'FI (NCC-Naval Wing)',
-      '254306',
-      '9882776744',
-      'amritroy@nith.ac.in',
-    ],
-    [
-      'Dr. Aniket Sharma, DoARCH',
-      'FI (NCC-ARMY WING)',
-      '254928',
-      '9418016996',
-      'aniket@nith.ac.in',
-    ],
-    [
-      'Dr. Aman Kumar, DoECE',
-      'FI (NCC-AIR WING)',
-      '254601',
-      '7307364773',
-      'akumar@nith.ac.in',
-    ],
-    [
-      'Dr. Amit Bage, DoECE',
-      'FI (NSS)',
-      '254601',
-      '8789470309',
-      'abage@nith.ac.in',
-    ],
-    [
-      'Dr. Nitin Gupta, DoCS&E',
-      'FI (Students Scholarships & Mediclaim)',
-      '254416',
-      '9953996404',
-      'nitin@nith.ac.in',
-    ],
-    [
-      'Dr. Aniket Sharma, DoARCH',
-      'FI (Security)',
-      '254928',
-      '9418016996',
-      'aniket@nith.ac.in',
-    ],
-    [
-      'Dr. Rakesh Sharma, DoECE',
-      'FI (Vikshit Bharat@2047)',
-      '254644',
-      '9418511300',
-      'rakesh.sharma@nith.ac.in',
-    ],
-    [
-      'Dr. Sandeep Sharma, DoArch',
-      'FI (Nashamukti Bharat)',
-      '254924',
-      '9418000416',
-      'sandeep@nith.ac.in',
-    ],
-    [
-      'Dr. Amanjeet Kaur, DoARCH',
-      'FI (Horticulture)',
-      '254916',
-      '9418026647',
-      'amanjeet@nith.ac.in',
-    ],
-    [
-      'Dr. (Ms.) Rinshu, DoHSS',
-      'AFI (Janjatia Gaurav Diwas cum Constitution Day)',
-      '254101',
-      '7978211574',
-      'rinshu@nith.ac.in',
-    ],
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        
+        // Fetch heading
+        const headRes = await fetch(`${apiUrl}/api/student-functionaries`, { cache: 'no-store' });
+        if (headRes.ok) {
+          const headData = await headRes.json();
+          if (headData.title_en) {
+            setHeading(headData);
+          }
+        }
 
-  const staff = [
-    ['Sh. Raj Kumar', 'Sr. Assistant', '254084', '--', 'rkverma@nith.ac.in'],
-    ['Sh. Ravi Das', 'Junior Assistant', '254084', '--', 'ravidasa@nith.ac.in'],
-    ['Sh. Jiwan Kumar', 'Office Attendant SG-II', '--', '--', '--'],
-  ];
+        // Fetch list
+        const listRes = await fetch(`${apiUrl}/api/student-functionaries/list`, { cache: 'no-store' });
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          if (Array.isArray(listData) && listData.length > 0) {
+            setFunctionaries(listData);
+          } else {
+            setFunctionaries(FALLBACK_LIST);
+          }
+        } else {
+          setFunctionaries(FALLBACK_LIST);
+        }
+      } catch (err) {
+        console.error('Error fetching student functionaries:', err);
+        setFunctionaries(FALLBACK_LIST);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <Header31 />
+        <div className="min-h-screen bg-white flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#800000]"></div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
       <Header31 />
 
+      {/* Breadcrumbs Navigation */}
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           <nav className="flex items-center space-x-2 text-sm text-gray-600">
@@ -388,18 +304,19 @@ export default function Page() {
               href="/"
               className="hover:text-[#800000] transition-colors duration-200"
             >
-              Home
+              {isHindi ? 'होम' : 'Home'}
             </Link>
             <span>›</span>
-            <span className="text-gray-400">Student</span>
+            <span className="text-gray-400">{isHindi ? 'छात्र' : 'Student'}</span>
             <span>›</span>
             <span className="text-[#800000] font-medium">
-              Student Welfare Functionaries
+              {isHindi ? 'छात्र कल्याण पदाधिकारी' : 'Student Welfare Functionaries'}
             </span>
           </nav>
         </div>
       </div>
 
+      {/* Hero Banner Section */}
       <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse" />
@@ -413,195 +330,90 @@ export default function Page() {
           transition={{ duration: 0.8 }}
           className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
         >
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6">
-            Student Welfare Functionaries
+          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-6 uppercase">
+            {isHindi ? heading.title_hn : heading.title_en}
           </h1>
           <p className="text-white/90 max-w-3xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            Contact details and responsibilities of student welfare
-            functionaries
+            {isHindi ? heading.sub_title_hn : heading.sub_title_en}
           </p>
         </motion.div>
       </section>
 
-      <main className="max-w-7xl mx-auto p-6 space-y-8">
-        <section className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            Dean &amp; Senior Functionaries
-          </h2>
+      {/* Main Tables Grid */}
+      <main className="max-w-7xl mx-auto p-6 space-y-12">
+        {CATEGORIES_MAPPING.map((catGroup, catIdx) => {
+          const groupEntries = functionaries.filter(f => f.category_en === catGroup.en);
+          if (groupEntries.length === 0) return null;
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left table-fixed border-collapse">
-              <colgroup>
-                <col style={{ width: '6%' }} />
-                <col style={{ width: '28%' }} />
-                <col style={{ width: '30%' }} />
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '24%' }} />
-              </colgroup>
-              <thead>
-                <tr className="text-sm text-gray-500 border-b">
-                  <th className="py-3 pr-6">Sl. No.</th>
-                  <th className="py-3 pr-6">Name</th>
-                  <th className="py-3 pr-6">Responsibility</th>
-                  <th className="py-3 pr-6">Phone No.</th>
-                  <th className="py-3 pr-6">Mobile No. / Email</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((r, i) => (
-                  <tr key={i} className="border-b hover:bg-gray-50">
-                    <td className="py-3">{i + 1}</td>
-                    <td className="py-3">{r[0]}</td>
-                    <td className="py-3">{r[1]}</td>
-                    <td className="py-3">{r[2]}</td>
-                    <td className="py-3">
-                      {r[3]} •{' '}
-                      <a href={`mailto:${r[4]}`} className="text-[#800000]">
-                        {r[4]}
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+          return (
+            <motion.section 
+              key={catGroup.en}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: catIdx * 0.1 }}
+              className="bg-white rounded-2xl shadow-sm border border-gray-150 p-6 md:p-8"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-3 border-b border-gray-100 flex items-center gap-3">
+                <span className="w-1.5 h-6 bg-[#800000] rounded-full"></span>
+                {isHindi ? catGroup.hn : catGroup.en}
+              </h2>
 
-        <section className="bg-gray-50 rounded-lg shadow-sm p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            Nodal Officers
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left table-fixed border-collapse">
-              <colgroup>
-                <col style={{ width: '6%' }} />
-                <col style={{ width: '28%' }} />
-                <col style={{ width: '30%' }} />
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '24%' }} />
-              </colgroup>
-              <thead>
-                <tr className="text-sm text-gray-500 border-b">
-                  <th className="py-3 pr-6">Sl. No.</th>
-                  <th className="py-3 pr-6">Name</th>
-                  <th className="py-3 pr-6">Responsibility</th>
-                  <th className="py-3 pr-6">Phone No.</th>
-                  <th className="py-3 pr-6">Mobile No. / Email</th>
-                </tr>
-              </thead>
-              <tbody>
-                {nodal.map((r, i) => (
-                  <tr key={i} className="border-b hover:bg-gray-50">
-                    <td className="py-3">{i + 1}</td>
-                    <td className="py-3">{r[0]}</td>
-                    <td className="py-3">{r[1]}</td>
-                    <td className="py-3">{r[2]}</td>
-                    <td className="py-3">
-                      {r[3]} •{' '}
-                      {r[4] !== '--' ? (
-                        <a href={`mailto:${r[4]}`} className="text-[#800000]">
-                          {r[4]}
-                        </a>
-                      ) : (
-                        '--'
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            Faculty In-Charge / Assistant Faculty In-Charge
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left table-fixed border-collapse">
-              <colgroup>
-                <col style={{ width: '6%' }} />
-                <col style={{ width: '28%' }} />
-                <col style={{ width: '30%' }} />
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '24%' }} />
-              </colgroup>
-              <thead>
-                <tr className="text-sm text-gray-500 border-b">
-                  <th className="py-3 pr-6">Sl. No.</th>
-                  <th className="py-3 pr-6">Name</th>
-                  <th className="py-3 pr-6">Responsibility</th>
-                  <th className="py-3 pr-6">Phone No.</th>
-                  <th className="py-3 pr-6">Mobile No. / Email</th>
-                </tr>
-              </thead>
-              <tbody>
-                {faculty.map((r, i) => (
-                  <tr key={i} className="border-b hover:bg-gray-50">
-                    <td className="py-3">{i + 1}</td>
-                    <td className="py-3">{r[0]}</td>
-                    <td className="py-3">{r[1]}</td>
-                    <td className="py-3">{r[2]}</td>
-                    <td className="py-3">
-                      {r[3]} •{' '}
-                      {r[4] !== '--' ? (
-                        <a href={`mailto:${r[4]}`} className="text-[#800000]">
-                          {r[4]}
-                        </a>
-                      ) : (
-                        '--'
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="bg-gray-50 rounded-lg shadow-sm p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Staff</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left table-fixed border-collapse">
-              <colgroup>
-                <col style={{ width: '6%' }} />
-                <col style={{ width: '28%' }} />
-                <col style={{ width: '30%' }} />
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '24%' }} />
-              </colgroup>
-              <thead>
-                <tr className="text-sm text-gray-500 border-b">
-                  <th className="py-3 pr-6">Sl. No.</th>
-                  <th className="py-3 pr-6">Name</th>
-                  <th className="py-3 pr-6">Responsibility</th>
-                  <th className="py-3 pr-6">Phone No.</th>
-                  <th className="py-3 pr-6">Mobile No. / Email</th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.map((r, i) => (
-                  <tr key={i} className="border-b hover:bg-gray-50">
-                    <td className="py-3">{i + 1}</td>
-                    <td className="py-3">{r[0]}</td>
-                    <td className="py-3">{r[1]}</td>
-                    <td className="py-3">{r[2]}</td>
-                    <td className="py-3">
-                      {r[3]} •{' '}
-                      {r[4] !== '--' ? (
-                        <a href={`mailto:${r[4]}`} className="text-[#800000]">
-                          {r[4]}
-                        </a>
-                      ) : (
-                        '--'
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left table-fixed border-collapse">
+                  <colgroup>
+                    <col style={{ width: '8%' }} />
+                    <col style={{ width: '28%' }} />
+                    <col style={{ width: '32%' }} />
+                    <col style={{ width: '12%' }} />
+                    <col style={{ width: '20%' }} />
+                  </colgroup>
+                  <thead>
+                    <tr className="text-xs font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
+                      <th className="py-3 pr-4">{isHindi ? 'क्रमांक' : 'Sl. No.'}</th>
+                      <th className="py-3 pr-4">{isHindi ? 'नाम' : 'Name'}</th>
+                      <th className="py-3 pr-4">{isHindi ? 'दायित्व' : 'Responsibility'}</th>
+                      <th className="py-3 pr-4">{isHindi ? 'दूरभाष (विस्तार)' : 'Phone No.'}</th>
+                      <th className="py-3 pr-4">{isHindi ? 'मोबाइल / ईमेल' : 'Mobile No. / Email'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {groupEntries.map((r, i) => (
+                      <tr key={r.id} className="hover:bg-gray-55/40 transition-colors">
+                        <td className="py-4 text-gray-500 font-semibold">{i + 1}</td>
+                        <td className="py-4 text-gray-900 font-bold">{isHindi ? r.name_hn : r.name_en}</td>
+                        <td className="py-4 text-gray-700 font-medium">{isHindi ? r.responsibility_hn : r.responsibility_en}</td>
+                        <td className="py-4 text-gray-600 font-semibold">{r.phone && r.phone !== '--' ? r.phone : '—'}</td>
+                        <td className="py-4 text-sm text-gray-600 font-medium">
+                          {r.mobile && r.mobile !== '--' && (
+                            <span className="block text-gray-900 font-semibold mb-1">{r.mobile}</span>
+                          )}
+                          {r.email && r.email !== '--' ? (
+                            <div className="flex flex-col gap-0.5">
+                              {r.email.split(',').map((emailStr, idx) => {
+                                const cleanEmail = emailStr.trim();
+                                return (
+                                  <a 
+                                    key={idx} 
+                                    href={`mailto:${cleanEmail}`} 
+                                    className="text-[#800000] hover:underline hover:text-[#a00000] transition-colors break-all"
+                                  >
+                                    {cleanEmail}
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <span>—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.section>
+          );
+        })}
       </main>
 
       <Footer />

@@ -1,181 +1,35 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0 },
 };
 
-interface NodalOfficer {
-  slNo: number;
-  name: string;
-  responsibility: string;
-  phone: string;
-  email: string;
-}
-
-const nodalOfficers: NodalOfficer[] = [
-  {
-    slNo: 1,
-    name: 'Dr. Archana Santosh Nanoty (Registrar)',
-    responsibility: 'Media Cell',
-    phone: '254010',
-    email: 'registrar@nith.ac.in',
-  },
-  {
-    slNo: 2,
-    name: 'Dr. Subhash Chand',
-    responsibility: 'Legal Cell',
-    phone: '254136',
-    email: 'schand@nith.ac.in',
-  },
-  {
-    slNo: 3,
-    name: 'Dr. Anoop Kumar',
-    responsibility: 'Hindi Cell',
-    phone: '254726',
-    email: 'anoop@nith.ac.in',
-  },
-  {
-    slNo: 4,
-    name: 'Dr. Chander Prakash',
-    responsibility:
-      'Unnat Bharat Abhiyan & India Universities and Institutes Network for Disaster Risk Reduction (IUINDRR)',
-    phone: '254344',
-    email: 'uba.rbl@nith.ac.in',
-  },
-  {
-    slNo: 5,
-    name: 'Dr. Rajeev Kumar',
-    responsibility: 'Rashtriya Avishkar Abhiyan',
-    phone: '254434',
-    email: 'rajeev@nith.ac.in',
-  },
-  {
-    slNo: 6,
-    name: 'Dr. Sandeep Sharma',
-    responsibility: 'Swachh Bharat Abhiyan',
-    phone: '254924',
-    email: 'sandeep@nith.ac.in',
-  },
-  {
-    slNo: 7,
-    name: 'Dr. Dharmendra',
-    responsibility: 'Skill India',
-    phone: '254318',
-    email: 'djha@nith.ac.in',
-  },
-  {
-    slNo: 8,
-    name: 'Dr. Supriya Jaiswal',
-    responsibility: 'Ek Bharat Shereshtha Bharat',
-    phone: '254501',
-    email: 'supriya@nith.ac.in',
-  },
-  {
-    slNo: 9,
-    name: 'Dr. Krishan Kumar',
-    responsibility: 'MeitY',
-    phone: '254642',
-    email: 'krishan_rathod@nith.ac.in',
-  },
-  {
-    slNo: 10,
-    name: 'Dr. Rajiv Kumar Sharma',
-    responsibility:
-      'YUKTI (Young India combating COVID with Knowledge, Technology and Innovation)',
-    phone: '254738',
-    email: 'rksfme@nith.ac.in',
-  },
-  {
-    slNo: 11,
-    name: 'Dr. Arun Kumar Yadav',
-    responsibility:
-      'Equal Opportunity Cell and Liaison Officer for Visually Challenged/PwD Category',
-    phone: '254402',
-    email: 'ayadav@nith.ac.in',
-  },
-  {
-    slNo: 12,
-    name: 'Dr. Richa Joshi',
-    responsibility: 'ARIIA',
-    phone: '254150',
-    email: 'richajoshi@nith.ac.in',
-  },
-  {
-    slNo: 13,
-    name: 'Dr. Mani Verma',
-    responsibility: 'Red Ribbon Club',
-    phone: '254690',
-    email: 'doctor@nith.ac.in',
-  },
-  {
-    slNo: 14,
-    name: 'Dr. Kuldeep Kumar Sharma',
-    responsibility: 'NIRF',
-    phone: '254117',
-    email: 'kks@nith.ac.in',
-  },
-  {
-    slNo: 15,
-    name: 'Dr. Ravinder Nath Sharma',
-    responsibility: 'National Educational Policy (NEP)',
-    phone: '254532',
-    email: 'nath@nith.ac.in',
-  },
-  {
-    slNo: 16,
-    name: 'Sh. Anil Kumar Sharma ( DR F&A)',
-    responsibility: 'Pension',
-    phone: '254032',
-    email: 'draccount@nith.ac.in',
-  },
-  {
-    slNo: 17,
-    name: 'Dr. Abhijeet Bhattacharyya',
-    responsibility: 'Digital India',
-    phone: '254601',
-    email: 'abhijit@nith.ac.in',
-  },
-  {
-    slNo: 18,
-    name: 'Dr. Sunil Sharma',
-    responsibility: 'National Task Force',
-    phone: '254316',
-    email: 'sunils@nith.ac.in',
-  },
-  {
-    slNo: 19,
-    name: 'Dr. Gargi Khanna,DoECE',
-    responsibility: 'MeitY-Scholarship',
-    phone: '254634, 98058 70101',
-    email: 'krishan_rathod@nith.ac.in',
-  },
-  {
-    slNo: 20,
-    name: 'Dr. Neetu Kapoor, DoARCH',
-    responsibility: 'Institute Magazine & News Bulletin',
-    phone: '254930, 7018302021',
-    email: 'neetu@nith.ac.in',
-  },
-  {
-    slNo: 21,
-    name: 'Dr. Ray Singh Meena, DoCE',
-    responsibility: 'Jan Jaliya Gaurav Diwas (JJGD)',
-    phone: '254301',
-    email: 'rsmeena@nith.ac.in',
-  },
-];
-
 export default function NodalOfficersPage() {
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/v1/administration/nodal-officers')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) setList(json.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header31 />
+    <div className="min-h-screen bg-gray-50 text-black">
 
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
@@ -246,13 +100,13 @@ export default function NodalOfficersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {nodalOfficers.map((officer) => (
+                  {list.map((officer, i) => (
                     <tr
-                      key={officer.slNo}
+                      key={officer.id || i}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {officer.slNo}
+                        {i + 1}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-800 font-medium">
                         {officer.name}
@@ -261,7 +115,7 @@ export default function NodalOfficersPage() {
                         {officer.responsibility}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">
-                        {officer.phone}
+                        {officer.phone || '--'}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <a
@@ -280,7 +134,6 @@ export default function NodalOfficersPage() {
         </motion.div>
       </main>
 
-      <Footer />
     </div>
   );
 }

@@ -1,18 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
-import { hods, HodEntry } from './data';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0 },
 };
 
-function HodTable({ rows }: { rows: HodEntry[] }) {
+function HodTable({ rows }: { rows: any[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -35,10 +32,10 @@ function HodTable({ rows }: { rows: HodEntry[] }) {
           <tbody>
             {rows.map((row, idx) => (
               <tr
-                key={idx}
+                key={row.id || idx}
                 className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
               >
-                <td className="px-6 py-4 text-sm text-gray-900">{row.slNo}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{idx + 1}</td>
                 <td className="px-6 py-4 text-sm text-gray-800 font-medium">
                   {row.name}
                 </td>
@@ -67,9 +64,26 @@ function HodTable({ rows }: { rows: HodEntry[] }) {
 }
 
 export default function HeadOfDepartmentsPage() {
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/v1/administration/hod')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) setList(json.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header31 />
+    <div className="min-h-screen bg-gray-50 text-black">
 
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
@@ -113,10 +127,9 @@ export default function HeadOfDepartmentsPage() {
       </section>
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16">
-        <HodTable rows={hods} />
+        <HodTable rows={list} />
       </main>
 
-      <Footer />
     </div>
   );
 }

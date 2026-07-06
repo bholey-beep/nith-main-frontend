@@ -1,105 +1,125 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Header31 from '@/app/components/header3';
 import Footer from '@/app/components/footer';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
-const SECTIONS = [
-  {
-    key: 'introduction',
-    title: 'Introduction',
-    content:
-      'NITH provides comfortable hostel accommodation to students with separate hostels for boys and girls. The hostels are supervised by wardens and supported by dedicated staff to ensure safety, hygiene, and a supportive residential environment.',
-  },
-  {
-    key: 'kailash',
-    title: 'Kailash Boys Hostel',
-    content:
-      'Kailash Boys Hostel houses students across multiple batches with common study areas, recreation room and 24x7 security. Facility includes Wi-Fi, mess and sports access.',
-  },
-  {
-    key: 'himgiri',
-    title: 'Himgiri Boys Hostel',
-    content:
-      'Himgiri is known for its quiet study zones and proximity to academic blocks. Hostellers have access to mess facilities and indoor games.',
-  },
-  {
-    key: 'udaygiri',
-    title: 'Udaygiri Boys Hostel',
-    content:
-      'Udaygiri offers well-ventilated rooms and student common rooms. Regular maintenance and housekeeping are provided.',
-  },
-  {
-    key: 'neelkanth',
-    title: 'Neelkanth Boys Hostel',
-    content:
-      'Neelkanth has modern amenities, prepared for senior students and research scholars with dedicated study lounges.',
-  },
-  {
-    key: 'dhauladhar',
-    title: 'Dhauladhar Boys Hostel',
-    content:
-      'Dhauladhar emphasizes community activities and sports; it includes outdoor play areas and common recreation.',
-  },
-  {
-    key: 'vindhyachal',
-    title: 'Vindhyachal Boys Hostel',
-    content:
-      'Vindhyachal provides comfortable accommodation with easy access to central facilities and libraries.',
-  },
-  {
-    key: 'shivalik',
-    title: 'Shivalik Boys Hostel',
-    content:
-      'Shivalik is one of the larger hostels with spacious common areas and frequent cultural events.',
-  },
-  {
-    key: 'ambika',
-    title: 'Ambika Girls Hostel',
-    content:
-      'Ambika Girls Hostel ensures a secure environment with female wardens and dedicated medical liaison.',
-  },
-  {
-    key: 'parvati',
-    title: 'Parvati Girls Hostel',
-    content:
-      'Parvati offers a balanced residential life with study rooms and an active student committee.',
-  },
-  {
-    key: 'mani-mahesh',
-    title: 'Mani-Mahesh Girls Hostel',
-    content:
-      'Mani-Mahesh supports new entrants and emphasizes orientation, welfare and mentorship.',
-  },
-  {
-    key: 'aravali',
-    title: 'Aravali Girls Hostel',
-    content:
-      'Aravali provides comfortable living with proximity to sports and cultural centers.',
-  },
-  {
-    key: 'satpura',
-    title: 'Satpura Hostel',
-    content:
-      'Satpura hosts students with accessible facilities and a responsive warden team.',
-  },
-];
+interface HostelHeading {
+  title_en: string;
+  title_hn: string;
+  sub_title_en: string;
+  sub_title_hn: string;
+  warden_contacts_en: string;
+  warden_contacts_hn: string;
+  mess_timings_en: string;
+  mess_timings_hn: string;
+  rules_url: string;
+  maintenance_url: string;
+  emergency_url: string;
+}
+
+interface HostelItem {
+  id: number;
+  key_name: string;
+  title_en: string;
+  title_hn: string;
+  description_en: string;
+  description_hn: string;
+  photo_url: string;
+  features_en: string;
+  features_hn: string;
+}
+
+const DEFAULT_HEADING: HostelHeading = {
+  title_en: 'NITH Hostels',
+  title_hn: 'एनआईटीएच छात्रावास',
+  sub_title_en: 'Hostel accommodation, contact points and brief descriptions for each hall of residence.',
+  sub_title_hn: 'संस्थान के प्रत्येक छात्रावास के लिए आवास, संपर्क सूत्र और संक्षिप्त विवरण।',
+  warden_contacts_en: 'Contact your hostel warden via the Student Office for emergencies and maintenance requests.',
+  warden_contacts_hn: 'आपात स्थिति और रखरखाव अनुरोधों के लिए छात्र कार्यालय के माध्यम से अपने छात्रावास वार्डन से संपर्क करें।',
+  mess_timings_en: 'Breakfast: 7:30 - 9:00\nLunch: 12:30 - 2:00\nDinner: 8:00 - 9:30',
+  mess_timings_hn: 'नाश्ता: 7:30 - 9:00\nदोपहर का भोजन: 12:30 - 2:00\nरात का खाना: 8:00 - 9:30',
+  rules_url: '/about/connectivity',
+  maintenance_url: '/student/hostels-at-nith',
+  emergency_url: '/student/ncc'
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0 },
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 export default function Page() {
+  const language = useSelector((state: RootState) => state.language.value);
+  const isEn = language === 'en';
+
   const [active, setActive] = useState<string>('introduction');
-  const current = SECTIONS.find((s) => s.key === active) ?? SECTIONS[0];
+  const [heading, setHeading] = useState<HostelHeading>(DEFAULT_HEADING);
+  const [hostels, setHostels] = useState<HostelItem[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const headRes = await fetch(`${API_URL}/api/student-hostels-at-nith`, { cache: 'no-store' });
+        if (headRes.ok) {
+          const hData = await headRes.json();
+          if (hData && Object.keys(hData).length > 0) {
+            setHeading({
+              title_en: hData.title_en || DEFAULT_HEADING.title_en,
+              title_hn: hData.title_hn || DEFAULT_HEADING.title_hn,
+              sub_title_en: hData.sub_title_en || DEFAULT_HEADING.sub_title_en,
+              sub_title_hn: hData.sub_title_hn || DEFAULT_HEADING.sub_title_hn,
+              warden_contacts_en: hData.warden_contacts_en || DEFAULT_HEADING.warden_contacts_en,
+              warden_contacts_hn: hData.warden_contacts_hn || DEFAULT_HEADING.warden_contacts_hn,
+              mess_timings_en: hData.mess_timings_en || DEFAULT_HEADING.mess_timings_en,
+              mess_timings_hn: hData.mess_timings_hn || DEFAULT_HEADING.mess_timings_hn,
+              rules_url: hData.rules_url || DEFAULT_HEADING.rules_url,
+              maintenance_url: hData.maintenance_url || DEFAULT_HEADING.maintenance_url,
+              emergency_url: hData.emergency_url || DEFAULT_HEADING.emergency_url
+            });
+          }
+        }
+
+        const listRes = await fetch(`${API_URL}/api/student-hostels-at-nith/list`, { cache: 'no-store' });
+        if (listRes.ok) {
+          const lData = await listRes.json();
+          if (lData && lData.length > 0) {
+            setHostels(lData);
+            // Pre-select introduction key if it exists, otherwise first element
+            const hasIntro = lData.find((h: HostelItem) => h.key_name === 'introduction');
+            if (hasIntro) {
+              setActive('introduction');
+            } else if (lData[0]?.key_name) {
+              setActive(lData[0].key_name);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load dynamic hostels list:', error);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const current = hostels.find((s) => s.key_name === active) || hostels[0];
+
+  // Parse custom features list
+  const activeFeatures = current
+    ? (isEn ? current.features_en : current.features_hn)?.split('\n').filter(Boolean) || []
+    : [];
 
   return (
     <div className="min-h-screen bg-white">
       <Header31 />
 
+      {/* Breadcrumb */}
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           <nav className="flex items-center space-x-2 text-base text-gray-600">
@@ -107,16 +127,19 @@ export default function Page() {
               href="/"
               className="hover:text-[#800000] transition-colors duration-200"
             >
-              Home
+              {isEn ? 'Home' : 'मुख्य पृष्ठ'}
             </Link>
             <span>›</span>
-            <span className="text-gray-400">Student</span>
+            <span className="text-gray-400">{isEn ? 'Student' : 'छात्र'}</span>
             <span>›</span>
-            <span className="text-[#800000] font-medium">NITH Hostels</span>
+            <span className="text-[#800000] font-medium">
+              {isEn ? heading.title_en : heading.title_hn}
+            </span>
           </nav>
         </div>
       </div>
 
+      {/* Hero Banner */}
       <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
         <motion.div
           initial="hidden"
@@ -126,11 +149,10 @@ export default function Page() {
           className="relative z-10 text-center py-20 md:py-28 px-6 md:px-12"
         >
           <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-            NITH Hostels
+            {isEn ? heading.title_en : heading.title_hn}
           </h1>
           <p className="text-white/90 max-w-3xl mx-auto text-lg leading-relaxed font-light">
-            Hostel accommodation, contact points and brief descriptions for each
-            hall of residence.
+            {isEn ? heading.sub_title_en : heading.sub_title_hn}
           </p>
         </motion.div>
       </section>
@@ -138,106 +160,116 @@ export default function Page() {
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-10">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar */}
-          <aside className="w-full md:w-72 bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-xl font-bold text-gray-900 mb-3">
-              NITH Hostels
+          <aside className="w-full md:w-72 bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-900 mb-3 text-[#800000]">
+              {isEn ? heading.title_en : heading.title_hn}
             </h3>
             <ul className="space-y-2">
-              {SECTIONS.map((s) => (
-                <li key={s.key}>
+              {hostels.map((s) => (
+                <li key={s.id}>
                   <button
-                    onClick={() => setActive(s.key)}
-                    className={`w-full text-left px-4 py-2 rounded-md transition-colors text-base ${active === s.key ? 'bg-[#800000] text-white' : 'text-gray-700 hover:bg-gray-50'}`}
+                    onClick={() => setActive(s.key_name)}
+                    className={`w-full text-left px-4 py-2 rounded-md transition-colors text-base font-semibold ${
+                      active === s.key_name ? 'bg-[#800000] text-white' : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                   >
-                    {s.title}
+                    {isEn ? s.title_en : s.title_hn}
                   </button>
                 </li>
               ))}
             </ul>
           </aside>
 
-          {/* Content panel (minimal) */}
-          <section className="flex-1 bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              {current.title}
-            </h2>
-            <div className="mt-4 flex flex-col md:flex-row md:items-start gap-6">
-              <img
-                src={`/images/hostels/${current.key}.jpg`}
-                alt={`${current.title} photo`}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src =
-                    '/images/hostel-placeholder.jpg';
-                }}
-                className="w-full md:w-64 h-40 md:h-44 object-cover rounded-md bg-gray-100 flex-shrink-0"
-              />
+          {/* Content panel */}
+          <section className="flex-1 bg-white rounded-lg shadow-sm p-6 border border-gray-100 min-h-[350px]">
+            {current ? (
+              <>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 border-b pb-2 text-[#800000]">
+                  {isEn ? current.title_en : current.title_hn}
+                </h2>
+                <div className="mt-5 flex flex-col md:flex-row md:items-start gap-6">
+                  <img
+                    src={current.photo_url !== '#' ? current.photo_url : `/images/hostels/${current.key_name}.jpg`}
+                    alt={`${isEn ? current.title_en : current.title_hn} photo`}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/nith.jpg';
+                    }}
+                    className="w-full md:w-64 h-40 md:h-44 object-cover rounded-md bg-gray-100 flex-shrink-0"
+                  />
 
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <p className="text-base text-gray-700 leading-relaxed">
-                    {current.content}
-                  </p>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
+                        {isEn ? current.description_en : current.description_hn}
+                      </p>
 
-                  <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-3">
-                    <ul className="text-base text-gray-700 list-disc pl-5">
-                      <li>Mess facilities available</li>
-                      <li>Common study areas</li>
-                      <li>24x7 security</li>
-                    </ul>
-                  </div>
+                      {activeFeatures.length > 0 && (
+                        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-3">
+                          <ul className="text-base text-gray-700 list-disc pl-5 font-semibold">
+                            {activeFeatures.map((feat, index) => (
+                              <li key={index}>{feat}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
-                  <div className="mt-4 flex justify-end">
-                    <a
-                      href="/student/welfare"
-                      className="inline-flex items-center px-5 py-2 bg-[#800000] text-white text-base font-medium rounded-lg"
-                    >
-                      Contact Warden
-                    </a>
+                      <div className="mt-6 flex justify-end">
+                        <Link
+                          href="/student/hostel-management"
+                          className="inline-flex items-center px-5 py-2.5 bg-[#800000] text-white text-base font-semibold rounded-lg hover:bg-[#6e0000] transition duration-200"
+                        >
+                          {isEn ? 'Contact Warden' : 'वार्डन से संपर्क करें'}
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center min-h-[300px] text-gray-400 italic">
+                {isEn ? 'No hostel content available.' : 'कोई छात्रावास सामग्री उपलब्ध नहीं है।'}
               </div>
-            </div>
+            )}
           </section>
 
           {/* Right display panel */}
-          <aside className="w-full md:w-72 bg-white rounded-lg shadow-sm p-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">
-              Quick Info
+          <aside className="w-full md:w-72 bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+            <h4 className="text-lg font-bold text-gray-900 mb-3 border-b pb-1 text-[#800000]">
+              {isEn ? 'Quick Info' : 'त्वरित जानकारी'}
             </h4>
-            <div className="text-base text-slate-700 space-y-3">
+            <div className="text-base text-slate-700 space-y-4">
               <div>
-                <div className="font-medium">Warden & Contacts</div>
-                <div className="text-slate-600 text-base">
-                  Contact your hostel warden via the Student Office for
-                  emergencies and maintenance requests.
+                <div className="font-bold text-gray-900">{isEn ? 'Warden & Contacts' : 'वार्डन और संपर्क'}</div>
+                <div className="text-slate-600 text-sm leading-relaxed mt-1">
+                  {isEn ? heading.warden_contacts_en : heading.warden_contacts_hn}
                 </div>
               </div>
 
               <div>
-                <div className="font-medium">Mess Timings</div>
-                <div className="text-slate-600 text-base">
-                  Breakfast: 7:30 - 9:00 <br /> Lunch: 12:30 - 2:00 <br />{' '}
-                  Dinner: 8:00 - 9:30
+                <div className="font-bold text-gray-900">{isEn ? 'Mess Timings' : 'भोजन कक्ष का समय'}</div>
+                <div className="text-slate-600 text-sm leading-relaxed mt-1 font-medium whitespace-pre-line">
+                  {isEn ? heading.mess_timings_en : heading.mess_timings_hn}
                 </div>
               </div>
 
               <div>
-                <div className="font-medium">Important Links</div>
-                <ul className="mt-2 space-y-2">
+                <div className="font-bold text-gray-900">{isEn ? 'Important Links' : 'महत्वपूर्ण लिंक्स'}</div>
+                <ul className="mt-2 space-y-1.5 text-sm font-semibold">
                   <li>
-                    <a href="/about/connectivity" className="text-[#800000] text-base">
-                      Hostel Rules
-                    </a>
+                    <Link href={heading.rules_url || '#'} className="text-[#800000] hover:underline">
+                      {isEn ? 'Hostel Rules' : 'छात्रावास के नियम'}
+                    </Link>
                   </li>
                   <li>
-                    <a href="/student/hostels-at-nith" className="text-[#800000] text-base">
-                      Apply for Maintenance
-                    </a>
+                    <Link href={heading.maintenance_url || '#'} className="text-[#800000] hover:underline">
+                      {isEn ? 'Apply for Maintenance' : 'रखरखाव के लिए आवेदन करें'}
+                    </Link>
                   </li>
                   <li>
-                    <a href="/student/ncc" className="text-[#800000] text-base">
-                      Emergency Contacts
-                    </a>
+                    <Link href={heading.emergency_url || '#'} className="text-[#800000] hover:underline">
+                      {isEn ? 'Emergency Contacts' : 'आपातकालीन संपर्क'}
+                    </Link>
                   </li>
                 </ul>
               </div>

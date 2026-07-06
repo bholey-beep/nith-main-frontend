@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Header31 from '@/app/components/header3';
@@ -11,42 +11,7 @@ const fadeUp = {
   visible: { opacity: 1, y: 0 },
 };
 
-interface Row {
-  slNo: number;
-  name: string;
-  designation: string;
-  phone: string;
-  email: string;
-}
-
-const registrarRows: Row[] = [
-  {
-    slNo: 1,
-    name: 'Dr. Archana Santosh Nanoty',
-    designation: 'Registrar',
-    phone: '254010, 224390',
-    email: 'registrar@nith.ac.in',
-  },
-];
-
-const officeStaffRows: Row[] = [
-  {
-    slNo: 1,
-    name: 'Mr. Vasu Tyagi',
-    designation: 'Junior Assistant',
-    phone: '254011',
-    email: '-',
-  },
-  {
-    slNo: 2,
-    name: 'Mr. Ashwani Kumar',
-    designation: 'Senior Assistant (PA)',
-    phone: '254011',
-    email: 'ashwanisoni@nith.ac.in',
-  },
-];
-
-function TableSection({ title, rows }: { title: string; rows: Row[] }) {
+function TableSection({ title, rows }: { title: string; rows: any[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -71,13 +36,13 @@ function TableSection({ title, rows }: { title: string; rows: Row[] }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map((row, i) => (
                 <tr
-                  key={row.slNo}
+                  key={row.id || i}
                   className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                 >
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {row.slNo}
+                    {i + 1}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-800 font-medium">
                     {row.name}
@@ -89,7 +54,7 @@ function TableSection({ title, rows }: { title: string; rows: Row[] }) {
                     {row.phone}
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    {row.email === '-' ? (
+                    {!row.email || row.email === '-' ? (
                       <span className="text-gray-500">-</span>
                     ) : (
                       <a
@@ -111,11 +76,31 @@ function TableSection({ title, rows }: { title: string; rows: Row[] }) {
 }
 
 export default function RegistrarOfficePage() {
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/v1/administration/registrar-office')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) setList(json.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
+
+  const registrarRows = list.filter(s => s.is_registrar);
+  const officeStaffRows = list.filter(s => !s.is_registrar);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 text-black">
       <Header31 />
 
-      {/* Breadcrumbs */}
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           <nav className="flex items-center space-x-2 text-sm text-gray-600">
@@ -140,7 +125,6 @@ export default function RegistrarOfficePage() {
         </div>
       </div>
 
-      {/* Hero */}
       <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse" />
@@ -154,7 +138,7 @@ export default function RegistrarOfficePage() {
           transition={{ duration: 0.8 }}
           className="relative z-10 text-center py-20 md:py-28 px-6 md:px-12"
         >
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-2">
+          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-2 uppercase">
             Registrar Office
           </h1>
           <p className="text-white/90 max-w-3xl mx-auto text-base md:text-lg leading-relaxed font-light">
@@ -163,7 +147,6 @@ export default function RegistrarOfficePage() {
         </motion.div>
       </section>
 
-      {/* Tables */}
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16">
         <TableSection title="Registrar" rows={registrarRows} />
         <TableSection title="Office Staff" rows={officeStaffRows} />
