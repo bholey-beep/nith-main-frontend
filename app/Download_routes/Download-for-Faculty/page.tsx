@@ -43,7 +43,12 @@ export default function WorkshopDownloadsPage() {
         );
 
         const result = await res.json();
-        setData(result);
+        if (Array.isArray(result)) {
+          setData(result);
+        } else {
+          console.error("Invalid response format:", result);
+          setData([]);
+        }
       } catch (err) {
         console.error("Error fetching downloads:", err);
       } finally {
