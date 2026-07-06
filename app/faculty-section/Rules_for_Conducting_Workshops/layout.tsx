@@ -1,6 +1,6 @@
 'use client';
-
-import React from 'react';
+// Trigger hot reload for routing tree
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -16,19 +16,53 @@ export default function DownloadsLayout({
 }) {
   const language = useSelector((state: RootState) => state.language.value);
   const pathname = usePathname();
+  const [heading, setHeading] = useState<any>({
+    title_en: 'Rules_for_Conducting_Workshops',
+    title_hn: 'छात्रों के लिए डाउनलोड',
+    sub_title_en: 'Latest downloads, announcements, and updates from the NITH Rules_for_Conducting_Workshops.',
+    sub_title_hn: 'एनआईटीएच छात्रों के लिए डाउनलोड, घोषणाएं और नवीनतम अपडेट।',
+    tab1_name_en: 'Conference/Workshop/FDP/STC Rules Formats',
+    tab1_name_hn: 'सम्मेलन/कार्यशाला/एफडीपी/एसटीसी नियम प्रारूप',
+    tab2_name_en: 'Notices/Office Orders/Notifications',
+    tab2_name_hn: 'सूचनाएं/कार्यालय आदेश/अधिसूचनाएं'
+  });
+
+  useEffect(() => {
+    const fetchHeading = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/faculty-workshop`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.title_en) {
+            setHeading({
+              title_en: data.title_en,
+              title_hn: data.title_hn,
+              sub_title_en: data.sub_title_en,
+              sub_title_hn: data.sub_title_hn,
+              tab1_name_en: data.tab1_name_en || 'Conference/Workshop/FDP/STC Rules Formats',
+              tab1_name_hn: data.tab1_name_hn || 'सम्मेलन/कार्यशाला/एफडीपी/एसटीसी नियम प्रारूप',
+              tab2_name_en: data.tab2_name_en || 'Notices/Office Orders/Notifications',
+              tab2_name_hn: data.tab2_name_hn || 'सूचनाएं/कार्यालय आदेश/अधिसूचनाएं'
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch heading:', err);
+      }
+    };
+    fetchHeading();
+  }, []);
+
+  const isHindi = language === 'hi';
 
   // Define your tabs here for cleaner code
   const tabs = [
     {
-      name:
-        language === 'en'
-          ? 'Conference/Workshop/FDP/STC Rules Formats'
-          : 'स्नातक',
+      name: isHindi ? heading.tab1_name_hn : heading.tab1_name_en,
       href: '/faculty-section/Rules_for_Conducting_Workshops',
     },
     {
-      name:
-        language === 'en' ? 'Notices/Office Orders/Notifications' : 'परास्नातक',
+      name: isHindi ? heading.tab2_name_hn : heading.tab2_name_en,
       href: '/faculty-section/Rules_for_Conducting_Workshops/notices',
     },
   ];
@@ -49,9 +83,7 @@ export default function DownloadsLayout({
             </Link>
             <span>›</span>
             <span className="font-medium text-gray-900">
-              {language === 'en'
-                ? 'Workshop Conduct Rules'
-                : 'छात्रों के लिए डाउनलोड'}
+              {isHindi ? heading.title_hn : heading.title_en}
             </span>
           </nav>
         </div>
@@ -67,14 +99,10 @@ export default function DownloadsLayout({
             className="text-center"
           >
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              {language === 'en'
-                ? 'Rules_for_Conducting_Workshops'
-                : 'छात्रों के लिए डाउनलोड'}
+              {isHindi ? heading.title_hn : heading.title_en}
             </h1>
             <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto">
-              {language === 'en'
-                ? 'Latest downloads, announcements, and updates from the NITH Rules_for_Conducting_Workshops.'
-                : 'एनआईटीएच छात्रों के लिए डाउनलोड, घोषणाएं और नवीनतम अपडेट।'}
+              {isHindi ? heading.sub_title_hn : heading.sub_title_en}
             </p>
           </motion.div>
         </div>

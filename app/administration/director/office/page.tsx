@@ -10,43 +10,29 @@ const fadeUp = {
   visible: { opacity: 1, y: 0 },
 };
 
-const director = [
-  {
-    name: 'Prof. Hiralal Murlidhar Suryawanshi',
-    designation: 'Director',
-    phone: '222308, 254001',
-    email: 'director@nith.ac.in',
-  },
-];
-
-const officeStaff = [
-  {
-    name: 'Ms. Sangeeta Anand (on Deputation)',
-    designation: 'Stenographer SG-II (Private Secretary)',
-    phone: '254001, 222308',
-    email: 'psd@nith.ac.in',
-  },
-  {
-    name: 'Sh. Vikas Dogra',
-    designation: 'Assistant SG-II(PA)',
-    phone: '254001, 222308',
-    email: 'vikasdogra@nith.ac.in',
-  },
-  {
-    name: 'Sh. Ramesh Chand-I',
-    designation: 'Sr. Office Attendant SG-I',
-    phone: '254001, 222308',
-    email: '--',
-  },
-  {
-    name: 'Ms. Smriti',
-    designation: 'Senior Technician',
-    phone: '--',
-    email: '--',
-  },
-];
+import { useState, useEffect } from 'react';
 
 export default function DirectorOfficePage() {
+  const [staffList, setStaffList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/v1/administration/office-staff')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) setStaffList(json.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  const director = staffList.filter(s => s.is_director);
+  const officeStaff = staffList.filter(s => !s.is_director);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
   return (
     <div className="min-h-screen bg-white">
       <Header31 />

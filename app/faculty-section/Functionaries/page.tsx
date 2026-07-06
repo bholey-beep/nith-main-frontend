@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Header31 from '@/app/components/header3';
 import Footer from '@/app/components/footer';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 const CATEGORIES = [
   'All Categories',
@@ -201,35 +203,87 @@ function CategorySection({ label, roles }: CategorySectionProps) {
 }
 
 export default function FacultyRolesPage() {
-  const [activeCategory, setActiveCategory] =
-    useState<Category>('All Categories');
+  const language = useSelector((state: RootState) => state.language.value);
+  const [activeCategory, setActiveCategory] = useState<Category>('All Categories');
+  
+  const [heading, setHeading] = useState<any>(null);
+  const [dbRoles, setDbRoles] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchHeading = async () => {
+      try {
+        const data = await fetch('http://localhost:4000/api/faculty-functionaries');
+        const res = await data.json();
+        setHeading(res);
+      } catch (err) {
+        console.error('Fetch heading failed:', err);
+      }
+    };
+
+    const fetchRoles = async () => {
+      try {
+        const data = await fetch('http://localhost:4000/api/faculty-functionaries/list');
+        const res = await data.json();
+        if (Array.isArray(res)) {
+          setDbRoles(res);
+        }
+      } catch (err) {
+        console.error('Fetch roles failed:', err);
+      }
+    };
+
+    fetchHeading();
+    fetchRoles();
+  }, []);
+
+  // Map DB roles to the format expected by the UI
+  const dbRolesMapped: Role[] = dbRoles.map((r: any) => ({
+    id: String(r.id),
+    category: (language === 'en' ? r.category_en : r.category_hn) as any,
+    roleType: (language === 'en' ? r.role_en : r.role_hn) as any,
+    name: language === 'en' ? r.name_en : r.name_hn,
+    designation: language === 'en' ? r.department_en : r.department_hn,
+    email: r.email,
+    facultyId: r.faculty_id,
+    since: language === 'en' ? `Since ${r.since_date_en}` : `${r.since_date_hn} से`,
+  }));
+
+  const displayRoles: Role[] = [...dbRolesMapped];
+  INITIAL_ROLES.forEach(def => {
+    if (!displayRoles.find(r => r.email === def.email)) {
+        displayRoles.push(def);
+    }
+  });
 
   const filteredRoles =
     activeCategory === 'All Categories'
-      ? INITIAL_ROLES
-      : INITIAL_ROLES.filter((r) => r.category === activeCategory);
+      ? displayRoles
+      : displayRoles.filter((r) => {
+          const dbItem = dbRoles.find(dr => String(dr.id) === r.id);
+          if (dbItem) {
+            return dbItem.category_en === activeCategory;
+          }
+          return r.category === activeCategory;
+        });
 
   return (
     <>
       <Header31 />
 
       <main className="min-h-screen bg-[#f4f2f1] px-8 py-10 text-[13px] text-gray-800">
-        {/* Header */}
         <header className="mx-auto mb-6 max-w-6xl text-center">
-          <h1 className="text-[26px] font-semibold tracking-[0.18em] text-[#6b1a1a]">
-            FACULTY ROLE ASSIGNMENTS
+          <h1 className="text-[26px] font-semibold tracking-[0.18em] text-[#6b1a1a] uppercase">
+            {heading ? (language === 'en' ? heading.title_en : heading.title_hn) : (language === 'en' ? 'FACULTY ROLE ASSIGNMENTS' : 'संकाय भूमिका असाइनमेंट')}
           </h1>
           <p className="mt-2 text-[12px] text-gray-600">
-            Dedicated faculty members serving in various administrative and
-            functional roles across the institute.
+            {heading ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'Dedicated faculty members serving in various administrative and functional roles across the institute.' : 'संस्थान भर में विभिन्न प्रशासनिक और कार्यात्मक भूमिकाओं में सेवारत समर्पित संकाय सदस्य।')}
           </p>
         </header>
 
-        {/* Category filter */}
         <section className="mx-auto mb-8 max-w-6xl rounded-md bg-white px-6 py-4 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <span className="text-[13px] font-semibold text-gray-800">
-              Filter by Category
+              {language === 'en' ? 'Filter by Category' : 'श्रेणी के अनुसार फिल्टर करें'}
             </span>
           </div>
 
@@ -247,14 +301,20 @@ export default function FacultyRolesPage() {
                       : 'border-gray-200 bg-[#f9f7f6] text-gray-700 hover:bg-gray-100',
                   ].join(' ')}
                 >
-                  {cat}
+                  {language === 'en' ? cat : (
+                    cat === 'All Categories' ? 'सभी श्रेणियां' :
+                    cat === 'Academics' ? 'अकादमिक' :
+                    cat === 'Student Welfare' ? 'छात्र कल्याण' :
+                    cat === 'Faculty Welfare' ? 'संकाय कल्याण' :
+                    cat === 'Cultural Activities' ? 'सांस्कृतिक गतिविधियां' :
+                    cat === 'Technical Activities' ? 'तकनीकी गतिविधियां' : cat
+                  )}
                 </button>
               );
             })}
           </div>
         </section>
 
-        {/* Sections for each assignment type */}
         {(
           [
             'Academics',
@@ -263,13 +323,26 @@ export default function FacultyRolesPage() {
             'Cultural Activities',
             'Technical Activities',
           ] as Exclude<Category, 'All Categories'>[]
-        ).map((cat) => (
-          <CategorySection
-            key={cat}
-            label={cat}
-            roles={filteredRoles.filter((r) => r.category === cat)}
-          />
-        ))}
+        ).map((cat) => {
+            const rolesForCat = filteredRoles.filter((r) => {
+                const dbItem = dbRoles.find(dr => String(dr.id) === r.id);
+                if (dbItem) return dbItem.category_en === cat;
+                return r.category === cat;
+            });
+            return (
+                <CategorySection
+                    key={cat}
+                    label={language === 'en' ? cat : (
+                        cat === 'Academics' ? 'अकादमिक' :
+                        cat === 'Student Welfare' ? 'छात्र कल्याण' :
+                        cat === 'Faculty Welfare' ? 'संकाय कल्याण' :
+                        cat === 'Cultural Activities' ? 'सांस्कृतिक गतिविधियां' :
+                        cat === 'Technical Activities' ? 'तकनीकी गतिविधियां' : cat
+                    ) as any}
+                    roles={rolesForCat}
+                />
+            );
+        })}
       </main>
 
       <Footer />

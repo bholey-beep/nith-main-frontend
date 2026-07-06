@@ -3,691 +3,191 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 import Header31 from '@/app/components/header3';
 import Footer from '@/app/components/footer';
+import { FileText, Download, Eye, Calendar, Search } from 'lucide-react';
 
 interface MoUItem {
   id: number;
-  title: string;
-  draftedDate: string;
-  documentUrl: string;
-  fileType: 'pdf' | 'doc' | 'docx';
+  title_en: string;
+  title_hn: string;
+  drafted_date: string;
+  document_url: string;
+  file_type: string;
 }
-
-// Sample MoU data by Ai - API call karna idhar
-const sampleMoUData: MoUItem[] = [
-  {
-    id: 1,
-    title:
-      'MoU between NITH Alumni Association and XYZ Corporation for Industry-Academia Collaboration',
-    draftedDate: '2025-01-10',
-    documentUrl: '/documents/mou/mou-xyz-corp.pdf',
-    fileType: 'pdf',
-  },
-  {
-    id: 2,
-    title: 'MoU for Alumni Mentorship Program with ABC Tech Foundation',
-    draftedDate: '2024-12-15',
-    documentUrl: '/documents/mou/mou-abc-tech.pdf',
-    fileType: 'pdf',
-  },
-  {
-    id: 3,
-    title: 'MoU for Scholarship Endowment Fund with Alumni Chapter USA',
-    draftedDate: '2024-11-20',
-    documentUrl: '/documents/mou/mou-scholarship.pdf',
-    fileType: 'pdf',
-  },
-  {
-    id: 4,
-    title: 'MoU for Joint Research Initiatives with Alumni Network Europe',
-    draftedDate: '2024-10-05',
-    documentUrl: '/documents/mou/mou-research.pdf',
-    fileType: 'pdf',
-  },
-  {
-    id: 5,
-    title:
-      'MoU for Campus Infrastructure Development with NITH Alumni Foundation',
-    draftedDate: '2024-09-18',
-    documentUrl: '/documents/mou/mou-infrastructure.pdf',
-    fileType: 'pdf',
-  },
-  {
-    id: 6,
-    title:
-      'MoU for Startup Incubation Support with Alumni Entrepreneurs Network',
-    draftedDate: '2024-08-25',
-    documentUrl: '/documents/mou/mou-startup.pdf',
-    fileType: 'pdf',
-  },
-  {
-    id: 7,
-    title:
-      'MoU for Annual Alumni Meet Organization with Local Chapters Consortium',
-    draftedDate: '2024-07-12',
-    documentUrl: '/documents/mou/mou-annual-meet.pdf',
-    fileType: 'pdf',
-  },
-  {
-    id: 8,
-    title: 'MoU for Student Internship Program with Global Alumni Partners',
-    draftedDate: '2024-06-30',
-    documentUrl: '/documents/mou/mou-internship.pdf',
-    fileType: 'pdf',
-  },
-];
 
 const ITEMS_PER_PAGE = 10;
 
-const TableSkeleton = () => (
-  <div className="animate-pulse">
-    {[1, 2, 3, 4, 5].map((i) => (
-      <div
-        key={i}
-        className="flex items-center gap-4 px-6 py-5 border-b border-gray-100"
-      >
-        <div className="w-12 h-5 bg-gray-200 rounded"></div>
-        <div className="flex-1 h-5 bg-gray-200 rounded"></div>
-        <div className="w-28 h-5 bg-gray-200 rounded"></div>
-        <div className="flex gap-2">
-          <div className="w-20 h-9 bg-gray-200 rounded-lg"></div>
-          <div className="w-24 h-9 bg-gray-200 rounded-lg"></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-const CardSkeleton = () => (
-  <div className="animate-pulse space-y-4">
-    {[1, 2, 3, 4].map((i) => (
-      <div key={i} className="bg-white rounded-xl p-5 shadow-sm">
-        <div className="h-4 bg-gray-200 rounded w-16 mb-3"></div>
-        <div className="h-5 bg-gray-200 rounded w-full mb-2"></div>
-        <div className="h-5 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div className="h-4 bg-gray-200 rounded w-24 mb-4"></div>
-        <div className="flex gap-2">
-          <div className="h-10 bg-gray-200 rounded-lg flex-1"></div>
-          <div className="h-10 bg-gray-200 rounded-lg flex-1"></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-export default function AlumniRelatedMoU() {
+export default function AlumniRelatedMou() {
+  const language = useSelector((state: RootState) => state.language.value);
   const [mous, setMous] = useState<MoUItem[]>([]);
+  const [heading, setHeading] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const hRes = await fetch('http://localhost:4000/api/alumni-mou');
+        const hData = await hRes.json();
+        setHeading(hData);
 
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/alumni/mou');
-        // const result = await response.json();
-
-        // Sort by date (latest first)
-        const sortedData = [...sampleMoUData].sort(
-          (a, b) =>
-            new Date(b.draftedDate).getTime() -
-            new Date(a.draftedDate).getTime()
-        );
-        setMous(sortedData);
+        const lRes = await fetch('http://localhost:4000/api/alumni-mou/list');
+        const lData = await lRes.json();
+        
+        setMous(Array.isArray(lData) ? lData : []);
       } catch (err) {
         console.error('Error fetching MoUs:', err);
+        setMous([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  const totalPages = Math.ceil(mous.length / ITEMS_PER_PAGE);
+  const filteredMous = useMemo(() => {
+    return mous.filter(m => {
+        const title = (language === 'en' ? m.title_en : m.title_hn).toLowerCase();
+        return title.includes(searchTerm.toLowerCase());
+    });
+  }, [mous, searchTerm, language]);
+
   const paginatedMous = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return mous.slice(start, start + ITEMS_PER_PAGE);
-  }, [mous, currentPage]);
+    return filteredMous.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredMous, currentPage]);
+
+  const totalPages = Math.ceil(filteredMous.length / ITEMS_PER_PAGE);
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    try {
+        return new Date(dateStr).toLocaleDateString(language === 'en' ? 'en-US' : 'hi-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    } catch { return dateStr; }
   };
 
   const handleRead = (url: string) => {
+    if (!url) { alert(language === 'en' ? 'Document not available' : 'दस्तावेज़ उपलब्ध नहीं है'); return; }
     window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleDownload = (url: string, title: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${title.slice(0, 50).replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 3) {
-        pages.push(1, 2, 3, 4, '...', totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(
-          1,
-          '...',
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages
-        );
-      } else {
-        pages.push(
-          1,
-          '...',
-          currentPage - 1,
-          currentPage,
-          currentPage + 1,
-          '...',
-          totalPages
-        );
-      }
-    }
-    return pages;
   };
 
   return (
     <>
       <Header31 />
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-          <div className="max-w-7xl mx-auto">
-            <nav className="flex items-center space-x-2 text-sm text-gray-600">
-              <Link
-                href="/"
-                className="hover:text-[#800000] transition-colors duration-200"
-              >
-                Home
-              </Link>
-              <span>›</span>
-              <span className="text-gray-400">Alumni</span>
-              <span>›</span>
-              <span className="text-[#800000] font-medium">
-                Alumni Related MoUs
-              </span>
-            </nav>
-          </div>
-        </div>
-
-        <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center"
-            >
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Alumni Related MoUs
-              </h1>
-              <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto">
-                Official Memorandums of Understanding associated with NITH
-                Alumni initiatives and collaborations.
-              </p>
-            </motion.div>
+      <div className="min-h-screen bg-gray-50 pb-20">
+        {/* Hero Section */}
+        <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-20 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+          <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <motion.h1 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-lg">
+              {heading && heading.title_en ? (language === 'en' ? heading.title_en : heading.title_hn) : (language === 'en' ? 'Alumni Related MoUs' : 'पूर्व छात्र संबंधित समझौता ज्ञापन')}
+            </motion.h1>
+            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto font-light leading-relaxed">
+              {heading && heading.sub_title_en ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'Official Memorandums of Understanding associated with NITH Alumni initiatives and collaborations.' : 'एनआईटीएच पूर्व छात्र पहलों और सहयोगों से जुड़े आधिकारिक समझौता ज्ञापन।')}
+            </motion.p>
           </div>
         </section>
 
-        <section className="py-12 md:py-16 px-4 md:px-6">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="mb-6"
-            >
-              <p className="text-gray-600">
-                Showing{' '}
-                <span className="font-semibold text-[#631012]">
-                  {paginatedMous.length}
-                </span>{' '}
-                of <span className="font-semibold">{mous.length}</span> MoUs
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="hidden lg:block bg-white rounded-2xl shadow-sm overflow-hidden"
-            >
-              {loading ? (
-                <TableSkeleton />
-              ) : mous.length === 0 ? (
-                <div className="p-12 text-center">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
-                    <svg
-                      className="w-10 h-10 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No MoUs Available
-                  </h3>
-                  <p className="text-gray-500">
-                    There are no Memorandums of Understanding available at the
-                    moment.
-                  </p>
+        {/* Search & Actions */}
+        <section className="max-w-7xl mx-auto px-6 -mt-8 relative z-20">
+            <div className="bg-white p-4 rounded-2xl shadow-xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="relative w-full md:w-96">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input 
+                        type="text" 
+                        placeholder={language === 'en' ? "Search MoUs..." : "खोजें..."} 
+                        value={searchTerm}
+                        onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-100 focus:ring-2 focus:ring-[#631012] outline-none transition-all text-sm"
+                    />
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">
-                          Sl. No.
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          MoU Title
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-40">
-                          Date Drafted On
-                        </th>
-                        <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-52">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      <AnimatePresence mode="wait">
-                        {paginatedMous.map((mou, index) => (
-                          <motion.tr
-                            key={mou.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            transition={{ duration: 0.3, delay: index * 0.05 }}
-                            className="hover:bg-gray-50/80 transition-colors duration-200 group"
-                          >
-                            <td className="px-6 py-5 text-sm text-gray-500 font-medium">
-                              {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
-                            </td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center justify-start gap-3">
-                                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#631012]/10 flex items-center justify-center">
-                                  <svg
-                                    className="w-5 h-5 text-[#631012]"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={1.5}
-                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                    />
-                                  </svg>
-                                </div>
-                                <span className="text-sm font-medium text-gray-900 group-hover:text-[#631012] transition-colors leading-relaxed">
-                                  {mou.title}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <svg
-                                  className="w-4 h-4 text-gray-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                  />
-                                </svg>
-                                {formatDate(mou.draftedDate)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => handleRead(mou.documentUrl)}
-                                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[#631012] bg-[#631012]/10 rounded-lg hover:bg-[#631012]/20 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#631012]/50 cursor-pointer"
-                                  aria-label={`Read ${mou.title}`}
-                                >
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    />
-                                  </svg>
-                                  Read
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleDownload(mou.documentUrl, mou.title)
-                                  }
-                                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[#631012] rounded-lg hover:bg-[#7a1a1d] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#631012]/50 cursor-pointer"
-                                  aria-label={`Download ${mou.title}`}
-                                >
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                    />
-                                  </svg>
-                                  Download
-                                </button>
-                              </div>
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </AnimatePresence>
-                    </tbody>
-                  </table>
+                <div className="text-sm font-bold text-[#631012] uppercase tracking-wider">
+                    {language === 'en' ? 'Document Repository' : 'दस्तावेज़ भंडार'}
                 </div>
-              )}
-            </motion.div>
-
-            <div className="lg:hidden">
-              {loading ? (
-                <CardSkeleton />
-              ) : mous.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white rounded-2xl shadow-sm p-8 text-center"
-                >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                    <svg
-                      className="w-8 h-8 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No MoUs Available
-                  </h3>
-                  <p className="text-gray-500 text-sm">
-                    There are no Memorandums of Understanding available at the
-                    moment.
-                  </p>
-                </motion.div>
-              ) : (
-                <div className="space-y-4">
-                  <AnimatePresence mode="wait">
-                    {paginatedMous.map((mou, index) => (
-                      <motion.div
-                        key={mou.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition-shadow duration-300"
-                      >
-                        <div className="flex items-center justify-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#631012]/10 text-[#631012] text-sm font-semibold flex items-center justify-center">
-                            {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
-                          </span>
-                          <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-gray-900 leading-relaxed">
-                              {mou.title}
-                            </h3>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 ml-11">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <span>Drafted on: {formatDate(mou.draftedDate)}</span>
-                        </div>
-
-                        <div className="flex gap-3 ml-11">
-                          <button
-                            onClick={() => handleRead(mou.documentUrl)}
-                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-[#631012] bg-[#631012]/10 rounded-lg hover:bg-[#631012]/20 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#631012]/50 cursor-pointer"
-                            aria-label={`Read ${mou.title}`}
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </svg>
-                            Read
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDownload(mou.documentUrl, mou.title)
-                            }
-                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-[#631012] rounded-lg hover:bg-[#7a1a1d] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#631012]/50 cursor-pointer"
-                            aria-label={`Download ${mou.title}`}
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                              />
-                            </svg>
-                            Download
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              )}
             </div>
+        </section>
 
-            {!loading && mous.length > ITEMS_PER_PAGE && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="mt-8 flex justify-center"
-              >
-                <div className="inline-flex items-center gap-1 bg-white rounded-xl shadow-sm p-2">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                    className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      currentPage === 1
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-[#631012]'
-                    }`}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                    <span className="hidden sm:inline">Previous</span>
-                  </button>
-
-                  <div className="flex items-center gap-1 px-2">
-                    {getPageNumbers().map((page, index) => (
-                      <React.Fragment key={index}>
-                        {page === '...' ? (
-                          <span className="px-3 py-2 text-gray-400">...</span>
-                        ) : (
-                          <button
-                            onClick={() => setCurrentPage(page as number)}
-                            className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
-                              currentPage === page
-                                ? 'bg-[#631012] text-white shadow-md'
-                                : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                    className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      currentPage === totalPages
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-[#631012]'
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Next</span>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
+        {/* Main Content */}
+        <section className="py-12 px-6 max-w-7xl mx-auto">
+            {loading ? (
+                <div className="p-20 text-center text-gray-400 bg-white rounded-3xl shadow-xl border border-gray-100">
+                    <div className="animate-spin w-10 h-10 border-4 border-[#631012] border-t-transparent rounded-full mx-auto mb-4"></div>
+                    Loading Documents...
                 </div>
-              </motion.div>
+            ) : (
+                <div className="space-y-4">
+                    <AnimatePresence mode="popLayout">
+                        {paginatedMous.map((mou, idx) => (
+                            <motion.div 
+                                key={mou.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6 group"
+                            >
+                                <div className="flex items-center gap-6 flex-1">
+                                    <div className="w-14 h-14 rounded-2xl bg-[#631012]/5 flex items-center justify-center text-[#631012] group-hover:bg-[#631012] group-hover:text-white transition-all shadow-inner">
+                                        <FileText size={28} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#631012] transition-colors">
+                                            {language === 'en' ? mou.title_en : mou.title_hn}
+                                        </h3>
+                                        <div className="flex items-center gap-4 text-xs font-medium text-gray-400">
+                                            <span className="flex items-center gap-1"><Calendar size={12} /> {language === 'en' ? 'Drafted on:' : 'तैयार किया गया:'} {formatDate(mou.drafted_date)}</span>
+                                            <span className="uppercase px-2 py-0.5 bg-gray-100 rounded text-[10px] tracking-widest">{mou.file_type}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => handleRead(mou.document_url)}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all shadow-lg"
+                                    >
+                                        <Eye size={16} /> {language === 'en' ? 'View Document' : 'दस्तावेज़ देखें'}
+                                    </button>
+                                    <a 
+                                        href={mou.document_url}
+                                        download
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-[#631012] text-white rounded-xl text-sm font-bold hover:bg-[#7a1214] transition-all shadow-lg shadow-[#631012]/20"
+                                    >
+                                        <Download size={16} /> {language === 'en' ? 'Download' : 'डाउनलोड'}
+                                    </a>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+
+                    {filteredMous.length === 0 && (
+                        <div className="p-20 text-center text-gray-400 bg-white rounded-3xl shadow-xl border-2 border-dashed border-gray-100">
+                            {language === 'en' ? 'No matching MoUs found.' : 'कोई समझौता ज्ञापन नहीं मिला।'}
+                        </div>
+                    )}
+                </div>
             )}
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="mt-12 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 p-6 md:p-8"
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#631012]/10 flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-[#631012]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+            {totalPages > 1 && (
+                <div className="mt-12 flex justify-center gap-2">
+                    {Array.from({length: totalPages}).map((_, i) => (
+                        <button 
+                            key={i} 
+                            onClick={() => {setCurrentPage(i+1); window.scrollTo({top: 300, behavior: 'smooth'});}}
+                            className={`w-10 h-10 rounded-xl font-bold transition-all ${currentPage === i+1 ? 'bg-[#631012] text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-200 hover:bg-gray-50'}`}
+                        >
+                            {i+1}
+                        </button>
+                    ))}
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    About Alumni MoUs
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    These Memorandums of Understanding represent official
-                    agreements between NIT Hamirpur and various alumni
-                    associations, organizations, and partners. They outline
-                    collaborative initiatives, scholarship programs,
-                    infrastructure development, research partnerships, and other
-                    activities that benefit the NITH community. For any queries
-                    regarding these MoUs, please contact the Alumni Relations
-                    Office.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+            )}
         </section>
       </div>
       <Footer />

@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Header31 from '@/app/components/header3';
@@ -10,84 +11,36 @@ const fadeUp = {
   visible: { opacity: 1, y: 0 },
 };
 
-const coordinators = [
-  {
-    name: 'Dr. Ravinder Nath Sharma',
-    resp: 'National Educational Policy (NEP)',
-    phone: '254532',
-    email: 'nath@nith.ac.in',
-  },
-  {
-    name: 'Prof. Yog Raj Sood',
-    resp: 'NBA',
-    phone: '254522',
-    email: 'yrsood@nith.ac.in',
-  },
-  {
-    name: 'Dr. Arvind Kumar Gautam',
-    resp: 'DASA/ICCR/MEA',
-    phone: '--',
-    email: 'akgautam@nith.ac.in',
-  },
-  {
-    name: 'Dr. Venu Shree',
-    resp: 'MOOCs under Swayam',
-    phone: '254922',
-    email: 'venushree@nith.ac.in',
-  },
-  {
-    name: 'Dr. Ramesh Kumar',
-    resp: 'Quality Improvement Programme',
-    phone: '254108',
-    email: 'rkvats@nith.ac.in',
-  },
-  {
-    name: 'Dr. Richa Joshi',
-    resp: 'AISHE',
-    phone: '254150',
-    email: 'richajoshi@nith.ac.in',
-  },
-  {
-    name: 'Dr. Kalyan Sunder Ghosh',
-    resp: 'Coordinator (NISP)',
-    phone: '254104',
-    email: 'kalyan@nith.ac.in',
-  },
-  {
-    name: 'Dr. Mohd. Adil',
-    resp: 'Coordinator (Innovation)',
-    phone: '254150',
-    email: 'adil.dms@nith.ac.in',
-  },
-  {
-    name: 'Dr. Jai Prakash',
-    resp: 'Coordinator (Incubation)',
-    phone: '254102',
-    email: 'jaip@nith.ac.in',
-  },
-  {
-    name: 'Dr. Amit Kaul',
-    resp: 'Coordinator (Start-Up)',
-    phone: '254544',
-    email: 'amitkaul@nith.ac.in',
-  },
-  {
-    name: 'Dr. Neetu Kapoor',
-    resp: 'Coordinator (Start-Up)',
-    phone: '254930',
-    email: 'neetu@nith.ac.in',
-  },
-  {
-    name: 'Dr. Puneet Sharma',
-    resp: 'Coordinator (Social Media)',
-    phone: '254926',
-    email: 'architect.puneet@nith.ac.in',
-  },
-];
-
 export default function InstituteCoordinatorPage() {
+  const [list, setList] = useState<any[]>([]);
+  const [info, setInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [infoRes, listRes] = await Promise.all([
+          fetch('http://localhost:5000/api/v1/administration/institute-coordinators-info'),
+          fetch('http://localhost:5000/api/v1/administration/institute-coordinators')
+        ]);
+        const infoData = await infoRes.json();
+        const listData = await listRes.json();
+        
+        if (infoData.success) setInfo(infoData.data);
+        if (listData.success) setList(listData.data);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white text-black">
       <Header31 />
 
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
@@ -119,12 +72,11 @@ export default function InstituteCoordinatorPage() {
           transition={{ duration: 0.8 }}
           className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
         >
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6">
-            Coordinator
+          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6 uppercase">
+            {info?.hero_heading || 'Institute Coordinator'}
           </h1>
           <p className="text-white/80 max-w-2xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            Contact details of institute coordinators and their
-            responsibilities.
+            {info?.hero_subheading || 'Contact details of institute coordinators and their responsibilities.'}
           </p>
         </motion.div>
       </section>
@@ -144,12 +96,12 @@ export default function InstituteCoordinatorPage() {
               </thead>
 
               <tbody>
-                {coordinators.map((c, i) => (
-                  <tr key={i} className="border-b hover:bg-gray-50">
+                {list.map((c, i) => (
+                  <tr key={c.id || i} className="border-b hover:bg-gray-50">
                     <td className="py-4 align-top">{i + 1}</td>
-                    <td className="py-4 align-top">{c.name}</td>
-                    <td className="py-4 align-top">{c.resp}</td>
-                    <td className="py-4 align-top">{c.phone}</td>
+                    <td className="py-4 align-top font-semibold">{c.name}</td>
+                    <td className="py-4 align-top text-gray-700">{c.responsibility || c.resp}</td>
+                    <td className="py-4 align-top">{c.phone || '--'}</td>
                     <td className="py-4 align-top">
                       <a
                         className="text-[#800000] font-medium"

@@ -1,13 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // Added to style active tabs
+import { usePathname } from 'next/navigation'; 
 import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer'; // Assuming you want the footer here too
+import Footer from '@/app/components/footer'; 
+
+interface PageMeta {
+  id?: number;
+  page_type: "faculty" | "students" | "miscellaneous";
+  heading_en: string;
+  heading_hi: string;
+  subheading_en: string;
+  subheading_hi: string;
+}
+
 
 export default function DownloadsLayout({
   children,
@@ -17,7 +27,8 @@ export default function DownloadsLayout({
   const language = useSelector((state: RootState) => state.language.value);
   const pathname = usePathname();
 
-  // Define your tabs here for cleaner code
+  const [metaData, setMetaData] = useState<PageMeta | null>(null);
+
   const tabs = [
     {
       name: language === 'en' ? 'Faculty & Staff' : 'संकाय और कर्मचारी',
@@ -29,9 +40,36 @@ export default function DownloadsLayout({
     },
     {
       name: language === 'en' ? 'Workshop/Conference' : 'कार्यशाला/सम्मेलन',
-      href: '/Download_routes/Download-for-Faculty/workshop',
+      href: '/Download_routes/Download-for-Faculty/conference-fdp',
     },
   ];
+
+  useEffect(() => {
+  const fetchMeta = async () => {
+    try {
+      const API_BASE = "http://localhost:4000/v1/downloads";
+
+      const res = await fetch(`${API_BASE}/meta`);
+
+      const data = await res.json();
+
+      // find faculty page meta
+      const facultyMeta = Array.isArray(data)
+        ? data.find((item) => item.page_type === "faculty")
+        : data?.data?.find(
+            (item: PageMeta) => item.page_type === "faculty"
+          );
+
+      if (facultyMeta) {
+        setMetaData(facultyMeta);
+      }
+    } catch (err) {
+      console.error("Meta fetch error:", err);
+    }
+  };
+
+  fetchMeta();
+}, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -49,9 +87,9 @@ export default function DownloadsLayout({
             </Link>
             <span>›</span>
             <span className="font-medium text-gray-900">
-              {language === 'en'
-                ? 'Downloads for Faculty'
-                : 'संकाय के लिए डाउनलोड'}
+             {language === 'en'
+                 ?'Downloads for Faculty'
+                :'संकाय के लिए डाउनलोड'}
             </span>
           </nav>
         </div>
@@ -68,13 +106,16 @@ export default function DownloadsLayout({
           >
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
               {language === 'en'
-                ? 'Downloads for Faculty'
-                : 'संकाय के लिए डाउनलोड'}
+                ?  metaData?.heading_en || 'Downloads for Faculty'
+                : metaData?.heading_hi || 'संकाय के लिए डाउनलोड'}
             </h1>
             <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto">
               {language === 'en'
-                ? 'Latest Downloads for Faculty, announcements, and updates from the NITH Downloads for Faculty community.'
-                : 'एनआईटीएच संकाय के लिए डाउनलोड, घोषणाएं और नवीनतम अपडेट।'}
+               ?metaData?.subheading_en ||
+                'Latest Downloads for Faculty, announcements, and updates from the NITH Downloads for Faculty community.'
+                :metaData?.subheading_hi ||
+                 'एनआईटीएच संकाय के लिए डाउनलोड, घोषणाएं और नवीनतम अपडेट।'}
+
             </p>
           </motion.div>
         </div>
@@ -116,3 +157,10 @@ export default function DownloadsLayout({
     </div>
   );
 }
+
+
+
+
+
+
+

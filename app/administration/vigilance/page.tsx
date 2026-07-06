@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -12,9 +10,34 @@ const fadeUp = {
 };
 
 export default function VigilancePage() {
+  const [members, setMembers] = useState<any[]>([]);
+  const [downloads, setDownloads] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [memRes, dlRes] = await Promise.all([
+          fetch('http://localhost:5000/api/v1/administration/vigilance'),
+          fetch('http://localhost:5000/api/v1/administration/vigilance-downloads')
+        ]);
+        const memData = await memRes.json();
+        const dlData = await dlRes.json();
+        if (memData.success) setMembers(memData.data);
+        if (dlData.success) setDownloads(dlData.data);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
+
   return (
-    <div className="min-h-screen bg-white">
-      <Header31 />
+    <div className="min-h-screen bg-white text-black">
 
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
@@ -36,7 +59,6 @@ export default function VigilancePage() {
       <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-700"></div>
         </div>
 
         <motion.div
@@ -46,10 +68,9 @@ export default function VigilancePage() {
           transition={{ duration: 0.8 }}
           className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
         >
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6">
+          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6 uppercase">
             Vigilance Corner
           </h1>
-
           <p className="text-white/80 max-w-2xl mx-auto text-lg md:text-xl leading-relaxed font-light">
             Information and resources related to vigilance, complaints, and
             awareness initiatives.
@@ -57,11 +78,10 @@ export default function VigilancePage() {
         </motion.div>
       </section>
 
-      {/* CVO card and table */}
       <section className="relative py-12 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg border border-gray-100">
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-4 text-left">
               Chief Vigilance Officer
             </h2>
 
@@ -76,22 +96,23 @@ export default function VigilancePage() {
                     <th className="py-3 pr-6">Email</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  <tr className="border-b hover:bg-gray-50">
-                    <td className="py-4">1</td>
-                    <td className="py-4">Prof. Ram Naresh Sharma</td>
-                    <td className="py-4">Chief Vigilance Officer</td>
-                    <td className="py-4">254526</td>
-                    <td className="py-4">
-                      <a
-                        href="mailto:cvo@nith.ac.in"
-                        className="text-[#800000] font-medium"
-                      >
-                        cvo@nith.ac.in
-                      </a>
-                    </td>
-                  </tr>
+                  {members.map((member, i) => (
+                    <tr key={member.id} className="border-b hover:bg-gray-50 transition-colors">
+                      <td className="py-4">{i + 1}</td>
+                      <td className="py-4 font-bold text-gray-900">{member.name}</td>
+                      <td className="py-4 text-gray-600 font-medium">{member.responsibility}</td>
+                      <td className="py-4 text-gray-500">{member.phone || '--'}</td>
+                      <td className="py-4">
+                        <a
+                          href={`mailto:${member.email}`}
+                          className="text-[#800000] font-bold hover:underline"
+                        >
+                          {member.email}
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -99,10 +120,9 @@ export default function VigilancePage() {
         </div>
       </section>
 
-      {/* Links to PDFs in tabular format */}
       <section className="relative py-8 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-3xl p-6 shadow-md border border-gray-100">
+          <div className="bg-white rounded-3xl p-6 shadow-md border border-gray-100 text-left">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               Downloads & Resources
             </h3>
@@ -112,86 +132,25 @@ export default function VigilancePage() {
                 <thead>
                   <tr className="text-sm text-gray-500 border-b">
                     <th className="py-3 pr-6">Document</th>
-                    <th className="py-3 pr-6">Action</th>
+                    <th className="py-3 pr-6 text-right">Action</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  <tr className="border-b hover:bg-gray-50">
-                    <td className="py-3">Who are CVO&apos;s?</td>
-                    <td className="py-3">
-                      <a
-                        href="/pdfs/who-are-cvos.pdf"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#800000] font-medium"
-                      >
-                        Open PDF
-                      </a>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b hover:bg-gray-50">
-                    <td className="py-3">Anti Corruption Policy @NITH</td>
-                    <td className="py-3">
-                      <a
-                        href="/pdfs/anti-corruption-policy-nith.pdf"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#800000] font-medium"
-                      >
-                        Open PDF
-                      </a>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b hover:bg-gray-50">
-                    <td className="py-3">
-                      Govt. of India Resolution on Public Interest Disclosure
-                    </td>
-                    <td className="py-3">
-                      <a
-                        href="/pdfs/govt-resolution-public-interest-disclosure.pdf"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#800000] font-medium"
-                      >
-                        Open PDF
-                      </a>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b hover:bg-gray-50">
-                    <td className="py-3">
-                      How to lodge Direct Complaint with CVC
-                    </td>
-                    <td className="py-3">
-                      <a
-                        href="/pdfs/how-to-lodge-complaint-cvc.pdf"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#800000] font-medium"
-                      >
-                        Open PDF
-                      </a>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b hover:bg-gray-50">
-                    <td className="py-3">Vigilance Awareness Week</td>
-                    <td className="py-3">
-                      <a
-                        href="/pdfs/vigilance-awareness-week.pdf"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#800000] font-medium"
-                      >
-                        Open PDF
-                      </a>
-                    </td>
-                  </tr>
-
-                  {/* Complaint registration moved to its own section below */}
+                  {downloads.map((dl) => (
+                    <tr key={dl.id} className="border-b hover:bg-gray-50">
+                      <td className="py-3">{dl.title}</td>
+                      <td className="py-3 text-right">
+                        <a
+                          href={dl.file_path}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#800000] font-medium"
+                        >
+                          Open PDF
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -199,29 +158,25 @@ export default function VigilancePage() {
         </div>
       </section>
 
-      {/* Separate Complaint Registration Section */}
       <section
         id="complaint-registration"
         className="relative py-10 px-6 bg-white"
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto text-left">
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg border border-gray-100">
             <h3 className="text-2xl font-semibold text-gray-900 mb-4">
               Vigilance Complaint Registration
             </h3>
-
             <p className="text-gray-600 mb-4">
               You may register complaints using the form below. Submissions will
               open your email client addressed to the vigilance office. For
               formal submissions, please use the official channels.
             </p>
-
             <ComplaintForm />
           </div>
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }
@@ -290,14 +245,6 @@ function ComplaintForm() {
         >
           Submit via Email
         </button>
-        <a
-          href="/pdfs/vigilance-complaint-registration.pdf"
-          target="_blank"
-          rel="noreferrer"
-          className="text-[#800000] font-medium"
-        >
-          Open Registration PDF
-        </a>
       </div>
     </form>
   );
