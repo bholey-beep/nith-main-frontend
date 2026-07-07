@@ -37,11 +37,11 @@ export default function CPDARules() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const hRes = await fetch('http://localhost:4000/api/faculty-cpda');
+        const hRes = await fetch('http://localhost:4000/api/faculty-cpda', { cache: 'no-store' });
         const hData = await hRes.json();
         setHeading(hData);
 
-        const lRes = await fetch('http://localhost:4000/api/faculty-cpda/list');
+        const lRes = await fetch('http://localhost:4000/api/faculty-cpda/list', { cache: 'no-store' });
         const lData = await lRes.json();
         
         if (Array.isArray(lData) && lData.length > 0) {

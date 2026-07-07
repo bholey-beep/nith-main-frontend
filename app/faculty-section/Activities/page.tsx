@@ -14,7 +14,7 @@ export default function Page() {
   useEffect(() => {
     const fetchHeading = async () => {
       try {
-        const data = await fetch('http://localhost:4000/api/faculty-activities');
+        const data = await fetch('http://localhost:4000/api/faculty-activities', { cache: 'no-store' });
         const res = await data.json();
         setHeading(res);
       } catch (err) {
@@ -24,7 +24,7 @@ export default function Page() {
 
     const fetchActivities = async () => {
       try {
-        const data = await fetch('http://localhost:4000/api/faculty-activities/subtext');
+        const data = await fetch('http://localhost:4000/api/faculty-activities/subtext', { cache: 'no-store' });
         const res = await data.json();
         if (Array.isArray(res)) {
           setActivities(res);
@@ -89,26 +89,6 @@ export default function Page() {
               {heading ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'Empowering our faculty and students through diverse academic and administrative responsibilities.' : 'विविध शैक्षणिक और प्रशासनिक जिम्मेदारियों के माध्यम से हमारे संकाय और छात्रों को सशक्त बनाना।')}
             </p>
           </div>
-import { RootState } from '../../store';
-import { useEffect } from 'react';
-
-export default function Page() {
-  const language = useSelector((state: RootState) => state.language.value);
-  useEffect(() => {
-    const fetchLanguage = async () => {
-      const data = await fetch('http://localhost:3000/api/getLanguage', {
-        method: 'GET',
-      });
-      const res = await data.json();
-      console.log(res);
-    };
-
-    fetchLanguage();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-white">
-     
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
             {activitiesData.map((activity, index) => (

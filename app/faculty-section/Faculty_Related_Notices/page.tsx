@@ -69,11 +69,11 @@ export default function FacultyNewsroom() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const hRes = await fetch('http://localhost:4000/api/faculty-notices');
+        const hRes = await fetch('http://localhost:4000/api/faculty-notices', { cache: 'no-store' });
         const hData = await hRes.json();
         setHeading(hData);
 
-        const lRes = await fetch('http://localhost:4000/api/faculty-notices/list');
+        const lRes = await fetch('http://localhost:4000/api/faculty-notices/list', { cache: 'no-store' });
         const lData = await lRes.json();
         
         let merged = Array.isArray(lData) ? [...lData] : [];

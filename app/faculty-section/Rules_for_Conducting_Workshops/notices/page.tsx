@@ -28,7 +28,7 @@ export default function WorkshopNoticesTable() {
     const fetchNotices = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/faculty-workshop/notices`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/faculty-workshop/notices`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setNotices(Array.isArray(data) ? data : []);

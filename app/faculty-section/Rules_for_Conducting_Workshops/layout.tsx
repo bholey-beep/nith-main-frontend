@@ -30,7 +30,7 @@ export default function DownloadsLayout({
   useEffect(() => {
     const fetchHeading = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/faculty-workshop`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/faculty-workshop`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (data && data.title_en) {
