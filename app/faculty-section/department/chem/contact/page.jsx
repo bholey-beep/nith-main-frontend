@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import './chem_contact.css'
+import DepartmentContactView from '../../_components/DepartmentContactView'
 
 const menuItems = [
   { label: 'About Us', href: '/faculty-section/department/chem' },
@@ -12,50 +12,26 @@ const menuItems = [
   { label: 'Contact', href: '/faculty-section/department/chem/contact', active: true },
 ]
 
+const fallbackContact = {
+  headName: 'Dr. Bharti Gaur',
+  designation: 'Head of Department',
+  departmentName: 'Chemistry',
+  instituteName: 'National Institute of Technology Hamirpur',
+  state: 'Himachal Pradesh',
+  pinCode: '177005',
+  phone: '01972 -254102',
+  hodEmail: 'head.chy@nith.ac.in',
+  officeEmail: 'office.chy@nith.ac.in',
+}
+
 export default function ChemContactPage() {
   return (
-    <main className="chem-contact-page">
-      <div className="chem-contact-shell">
-        <aside className="chem-contact-sidebar" aria-label="Department navigation">
-          <nav>
-            {menuItems.map((item) => (
-              <Link
-                className={item.active ? 'active' : ''}
-                href={item.href}
-                key={item.label}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="chem-contact-content">
-          <div className="contact-card">
-            <h1>Contact Information</h1>
-
-            <address>
-              <strong>Dr. Bharti Gaur</strong>
-              <span>Head of Department</span>
-              <span>Chemistry</span>
-              <span>National Institute of Technology Hamirpur</span>
-              <span>Himachal Pradesh, Pin No. 177005, India.</span>
-            </address>
-
-            <div className="contact-details">
-              <p>
-                <strong>Phone No.:</strong> 01972 -254102
-              </p>
-              <p>
-                <strong>HoD Email:</strong>  head.chy@nith.ac.in
-              </p>
-              <p>
-                <strong>Office Email:</strong> office.chy@nith.ac.in
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
+    <DepartmentContactView
+      departmentCode="chem"
+      menuItems={menuItems}
+      pageClassName="chem-contact-page"
+      cssPrefix="chem"
+      fallbackContact={fallbackContact}
+    />
   )
 }

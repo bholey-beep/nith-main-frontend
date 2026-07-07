@@ -148,36 +148,99 @@ const styles = {
   },
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+
+const iconMap = {
+  GraduationCap: GraduationCap,
+  Microscope: Microscope,
+  Network: Network,
+  BookOpen: BookOpen,
+}
+
+const defaultInfo = {
+  title: 'Department of Physics',
+  description: 'The Department of Physics is committed to excellence in teaching and research in various branches of physics. It offers undergraduate and postgraduate courses for engineering departments, along with Ph.D. programs in condensed matter physics, high energy physics, materials science, and theoretical nuclear physics. The department houses well-equipped laboratories for experimental physics, spectroscopy, materials characterization, and computational physics. It aims to foster scientific temper, analytical thinking, and research innovation among students, preparing them for careers in academia, industry, and research institutions.',
+}
+
+const defaultProgrammes = [
+  {
+    name: 'B.Tech',
+    Icon: GraduationCap,
+    details:
+      'Four-year undergraduate programme providing foundational knowledge in physics, experimental techniques, and analytical problem-solving skills for engineering applications.',
+  },
+  {
+    name: 'M.Tech',
+    Icon: Microscope,
+    details:
+      'Postgraduate programme in Materials Science focusing on condensed matter physics, nanotechnology, and advanced materials characterization techniques.',
+  },
+  {
+    name: 'Ph.D',
+    Icon: Network,
+    details:
+      'Advanced doctoral research programs in condensed matter physics, high energy physics, materials physics, spectroscopy, and theoretical nuclear physics.',
+  },
+]
+
+const renderIcon = (iconInput) => {
+  if (!iconInput) return <GraduationCap size={24} strokeWidth={1.8} />;
+  
+  if (typeof iconInput !== 'string') {
+    const IconComponent = iconInput;
+    return <IconComponent size={24} strokeWidth={1.8} />;
+  }
+
+  const lookup = iconInput.trim().toLowerCase();
+  const matchedKey = Object.keys(iconMap).find(k => k.toLowerCase() === lookup);
+  if (matchedKey) {
+    const IconComponent = iconMap[matchedKey];
+    return <IconComponent size={24} strokeWidth={1.8} />;
+  }
+
+  return (
+    <span style={{ fontSize: '24px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      {iconInput}
+    </span>
+  );
+}
+
 function App() {
-  const [departmentData, setDepartmentData] = useState(null)
+  const [departmentInfo, setDepartmentInfo] = useState(defaultInfo)
+  const [programmesList, setProgrammesList] = useState(defaultProgrammes)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/department.xml')
-      .then((response) => response.text())
-      .then((xmlText) => {
-        const parser = new DOMParser()
-        const xml = parser.parseFromString(xmlText, 'text/xml')
+    let cancelled = false;
+    const loadData = async () => {
+      try {
+        // Fetch department info from master department endpoint
+        const res = await fetch(`${API_BASE}/v1/departments/phy?language=en`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data && !cancelled) {
+            setDepartmentInfo({
+              title: json.data.name_en || json.data.name || defaultInfo.title,
+              description: json.data.description_short_en || json.data.description_short || defaultInfo.description,
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching department info:', e);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-        const title = xml.querySelector('title')?.textContent || ''
+    loadData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-        const descriptions = [...xml.querySelectorAll('info description')]
-          .map((item) => item.textContent)
-
-        const programmes = [...xml.querySelectorAll('programme')].map((item) => ({
-          name: item.querySelector('name')?.textContent || '',
-          icon: item.querySelector('icon')?.textContent || '',
-          details: item.querySelector('details')?.textContent || '',
-        }))
-
-        setDepartmentData({
-          title,
-          descriptions,
-          programmes,
-        })
-      })
-  }, [])
-
-  if (!departmentData) {
+  if (loading) {
     return (
       <h2 style={{ padding: '2rem', color: '#333' }}>
         Loading...
@@ -226,7 +289,7 @@ function App() {
         <div style={styles.contentBox}>
 
           <h1 style={styles.pageTitle}>
-            {departmentData.title}
+            {departmentInfo.title}
           </h1>
 
           {/* Image */}
@@ -243,9 +306,11 @@ function App() {
           />
 
           {/* Description */}
-          <p style={styles.descriptionText}>
-            The Department of Physics is committed to excellence in teaching and research in various branches of physics. It offers undergraduate and postgraduate courses for engineering departments, along with Ph.D. programs in condensed matter physics, high energy physics, materials science, and theoretical nuclear physics. The department houses well-equipped laboratories for experimental physics, spectroscopy, materials characterization, and computational physics. It aims to foster scientific temper, analytical thinking, and research innovation among students, preparing them for careers in academia, industry, and research institutions.
-          </p>
+          {departmentInfo.description.split('\n').filter(Boolean).map((text, index) => (
+            <p key={index} style={styles.descriptionText}>
+              {text}
+            </p>
+          ))}
 
           {/* Academic Programmes */}
           <h2 style={styles.sectionTitle}>
@@ -261,13 +326,13 @@ function App() {
               marginBottom: '30px',
             }}
           >
-            {academicProgrammes.map((programme) => (
+            {programmesList.map((programme) => (
               <div
                 key={programme.name}
                 style={styles.programmeCard}
               >
                 <span style={styles.programmeIcon}>
-                  <programme.Icon size={24} strokeWidth={1.8} />
+                  {renderIcon(programme.icon || programme.Icon)}
                 </span>
 
                 <h3 style={styles.programmeName}>
@@ -281,6 +346,7 @@ function App() {
             ))}
           </div>
 
+<<<<<<< HEAD
           {/* Description */}
           {departmentData.descriptions.map((text, index) => (
             <p key={index} style={styles.descriptionText}>
@@ -288,6 +354,8 @@ function App() {
             </p>
           ))}
 
+=======
+>>>>>>> main
         </div>
       </main>
 

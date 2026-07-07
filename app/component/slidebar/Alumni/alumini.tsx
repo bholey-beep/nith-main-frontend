@@ -38,8 +38,7 @@ const alumniData = [
       {
         title: 'Alumni Related MoU',
         title2: 'पूर्व छात्र संबंधित समझौता ज्ञापन (MoU)',
-        href: 'https://nith.ac.in/uploads/topics/mouepack16939083811860.pdf',
-        isExternal: true,
+        href: '/alumni/related-mou',
       },
       {
         title: 'Alumni Assist',

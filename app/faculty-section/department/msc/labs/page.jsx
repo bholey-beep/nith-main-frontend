@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import './msc_labs.css'
+import DepartmentLabsView from '../../_components/DepartmentLabsView'
 
 const menuItems = [
   { label: 'About Us', href: '/faculty-section/department/msc' },
@@ -34,47 +34,14 @@ const equipment = [
   'UV Visible spectrophotometer',
 ]
 
-export default function mscLabsPage() {
+export default function MscLabsPage() {
   return (
-    <main className="msc-labs-page">
-      <div className="msc-labs-shell">
-        <aside className="msc-labs-sidebar" aria-label="Department navigation">
-          <nav>
-            {menuItems.map((item) => (
-              <Link
-                className={item.active ? 'active' : ''}
-                href={item.href}
-                key={item.label}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="msc-labs-content">
-          <h1>List of Laboratories</h1>
-
-          <table className="labs-table">
-            <thead>
-              <tr>
-                <th>Sl. No.</th>
-                <th>Laboratory Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {laboratories.map((lab, index) => (
-                <tr key={lab}>
-                  <td>{index + 1}</td>
-                  <td>{lab}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-    
-        </section>
-      </div>
-    </main>
+    <DepartmentLabsView
+      departmentCode="msc"
+      menuItems={menuItems}
+      pageClassName="msc-labs-page"
+      cssPrefix="msc"
+      fallbackLabs={laboratories}
+    />
   )
 }

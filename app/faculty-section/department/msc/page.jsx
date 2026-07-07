@@ -148,36 +148,99 @@ const styles = {
   },
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+
+const iconMap = {
+  GraduationCap: GraduationCap,
+  Microscope: Microscope,
+  Network: Network,
+  BookOpen: BookOpen,
+}
+
+const defaultInfo = {
+  title: 'Department of Material Science & Engineering',
+  description: 'Established in 2008, the Centre for Materials Science and Engineering (CMSE) focuses on interdisciplinary teaching and research in materials science, nanotechnology, biology, chemistry, and physics. The centre launched its Ph.D. programme in 2010 and M.Tech. programme in 2010, and currently houses advanced synthesis and characterization facilities with six faculty members working in frontier research areas.',
+}
+
+const defaultProgrammes = [
+  {
+    name: 'B.Tech',
+    Icon: GraduationCap,
+    details:
+      'Four-year undergraduate programme providing strong foundations in materials science, engineering principles, processing techniques, and analytical problem-solving skills for modern technological applications.',
+  },
+  {
+    name: 'M.Tech',
+    Icon: Microscope,
+    details:
+      'Two-year postgraduate programme focused on advanced materials research, characterization techniques, and specialized engineering applications in emerging technologies.',
+  },
+  {
+    name: 'Ph.D',
+    Icon: Network,
+    details:
+      'Research-intensive doctoral programme emphasizing original contributions in advanced materials science, interdisciplinary innovation, and high-impact scientific research.',
+  },
+]
+
+const renderIcon = (iconInput) => {
+  if (!iconInput) return <GraduationCap size={24} strokeWidth={1.8} />;
+  
+  if (typeof iconInput !== 'string') {
+    const IconComponent = iconInput;
+    return <IconComponent size={24} strokeWidth={1.8} />;
+  }
+
+  const lookup = iconInput.trim().toLowerCase();
+  const matchedKey = Object.keys(iconMap).find(k => k.toLowerCase() === lookup);
+  if (matchedKey) {
+    const IconComponent = iconMap[matchedKey];
+    return <IconComponent size={24} strokeWidth={1.8} />;
+  }
+
+  return (
+    <span style={{ fontSize: '24px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      {iconInput}
+    </span>
+  );
+}
+
 function App() {
-  const [departmentData, setDepartmentData] = useState(null)
+  const [departmentInfo, setDepartmentInfo] = useState(defaultInfo)
+  const [programmesList, setProgrammesList] = useState(defaultProgrammes)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/department.xml')
-      .then((response) => response.text())
-      .then((xmlText) => {
-        const parser = new DOMParser()
-        const xml = parser.parseFromString(xmlText, 'text/xml')
+    let cancelled = false;
+    const loadData = async () => {
+      try {
+        // Fetch department info from master department endpoint
+        const res = await fetch(`${API_BASE}/v1/departments/msc?language=en`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data && !cancelled) {
+            setDepartmentInfo({
+              title: json.data.name_en || json.data.name || defaultInfo.title,
+              description: json.data.description_short_en || json.data.description_short || defaultInfo.description,
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching department info:', e);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-        const title = xml.querySelector('title')?.textContent || ''
+    loadData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-        const descriptions = [...xml.querySelectorAll('info description')]
-          .map((item) => item.textContent)
-
-        const programmes = [...xml.querySelectorAll('programme')].map((item) => ({
-          name: item.querySelector('name')?.textContent || '',
-          icon: item.querySelector('icon')?.textContent || '',
-          details: item.querySelector('details')?.textContent || '',
-        }))
-
-        setDepartmentData({
-          title,
-          descriptions,
-          programmes,
-        })
-      })
-  }, [])
-
-  if (!departmentData) {
+  if (loading) {
     return (
       <h2 style={{ padding: '2rem', color: '#333' }}>
         Loading...
@@ -226,7 +289,7 @@ function App() {
         <div style={styles.contentBox}>
 
           <h1 style={styles.pageTitle}>
-            Department of Material Science & Engineering
+            {departmentInfo.title}
           </h1>
 
           {/* Image */}
@@ -243,9 +306,11 @@ function App() {
           />
 
           {/* Description */}
-          <p style={styles.descriptionText}>
-            Established in 2008, the Centre for Materials Science and Engineering (CMSE) focuses on interdisciplinary teaching and research in materials science, nanotechnology, biology, chemistry, and physics. The centre launched its Ph.D. programme in 2010 and M.Tech. programme in 2010, and currently houses advanced synthesis and characterization facilities with six faculty members working in frontier research areas.
-          </p>
+          {departmentInfo.description.split('\n').filter(Boolean).map((text, index) => (
+            <p key={index} style={styles.descriptionText}>
+              {text}
+            </p>
+          ))}
 
           {/* Academic Programmes */}
           <h2 style={styles.sectionTitle}>
@@ -261,13 +326,13 @@ function App() {
               marginBottom: '30px',
             }}
           >
-            {academicProgrammes.map((programme) => (
+            {programmesList.map((programme) => (
               <div
                 key={programme.name}
                 style={styles.programmeCard}
               >
                 <span style={styles.programmeIcon}>
-                  <programme.Icon size={24} strokeWidth={1.8} />
+                  {renderIcon(programme.icon || programme.Icon)}
                 </span>
 
                 <h3 style={styles.programmeName}>
@@ -293,6 +358,7 @@ function App() {
             Faculty members have published 200+ international research papers, along with 1 Japanese patent and 9 books.
           </p>
 
+<<<<<<< HEAD
           {/* Description */}
           {departmentData.descriptions.map((text, index) => (
             <p key={index} style={styles.descriptionText}>
@@ -300,6 +366,8 @@ function App() {
             </p>
           ))}
 
+=======
+>>>>>>> main
         </div>
       </main>
 

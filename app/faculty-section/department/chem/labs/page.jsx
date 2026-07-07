@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import './chem_labs.css'
+import DepartmentLabsView from '../../_components/DepartmentLabsView'
 
 const menuItems = [
   { label: 'About Us', href: '/faculty-section/department/chem' },
@@ -18,43 +18,12 @@ const laboratories = [
 
 export default function ChemLabsPage() {
   return (
-    <main className="chem-labs-page">
-      <div className="chem-labs-shell">
-        <aside className="chem-labs-sidebar" aria-label="Department navigation">
-          <nav>
-            {menuItems.map((item) => (
-              <Link
-                className={item.active ? 'active' : ''}
-                href={item.href}
-                key={item.label}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="chem-labs-content">
-          <h1>List of Laboratories</h1>
-
-          <table className="labs-table">
-            <thead>
-              <tr>
-                <th>Sl. No.</th>
-                <th>Laboratory Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {laboratories.map((lab, index) => (
-                <tr key={lab}>
-                  <td>{index + 1}</td>
-                  <td>{lab}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      </div>
-    </main>
+    <DepartmentLabsView
+      departmentCode="chem"
+      menuItems={menuItems}
+      pageClassName="chem-labs-page"
+      cssPrefix="chem"
+      fallbackLabs={laboratories}
+    />
   )
 }

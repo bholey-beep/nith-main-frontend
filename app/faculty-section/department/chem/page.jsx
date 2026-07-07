@@ -19,13 +19,13 @@ const academicProgrammes = [
     name: 'M.Tech',
     Icon: Microscope,
     details:
-      'Postgraduate programme in phyical Technology in collaboration with the phyical Engineering department.',
+      'Postgraduate programme in Chemical Technology in collaboration with the Chemical Engineering department.',
   },
   {
     name: 'Ph.D',
     Icon: Network,
     details:
-      'Advanced doctoral research programs in various areas of phyistry.',
+      'Advanced doctoral research programs in various areas of chemistry.',
   },
 ]
 
@@ -148,36 +148,149 @@ const styles = {
   },
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+
+const iconMap = {
+  GraduationCap: GraduationCap,
+  Microscope: Microscope,
+  Network: Network,
+  BookOpen: BookOpen,
+}
+
+const defaultInfo = {
+  title: 'Department of Chemistry',
+  description: 'The Department of Chemistry became an independent department in August 2009. It offers UG and PG courses for engineering departments, along with Ph.D. programs in various areas of chemistry. Since 2016–17, the department has offered an M.Tech. in Chemical Technology in collaboration with the Chemical Engineering department, and since 2017–18, an M.Sc. in Chemistry. The department aims to expand and upgrade its PG programs to meet current industrial needs and encourages active industry participation in curriculum development and training.',
+}
+
+const defaultProgrammes = [
+  {
+    name: 'B.Tech',
+    Icon: GraduationCap,
+    details:
+      'Four-year undergraduate programme focusing on core foundations and emerging tech trends.',
+  },
+  {
+    name: 'M.Tech',
+    Icon: Microscope,
+    details:
+      'Postgraduate programme in Chemical Technology in collaboration with the Chemical Engineering department.',
+  },
+  {
+    name: 'Ph.D',
+    Icon: Network,
+    details:
+      'Advanced doctoral research programs in various areas of chemistry.',
+  },
+]
+
+const renderIcon = (iconInput) => {
+  if (!iconInput) return <GraduationCap size={24} strokeWidth={1.8} />;
+  
+  if (typeof iconInput !== 'string') {
+    const IconComponent = iconInput;
+    return <IconComponent size={24} strokeWidth={1.8} />;
+  }
+
+  const lookup = iconInput.trim().toLowerCase();
+  const matchedKey = Object.keys(iconMap).find(k => k.toLowerCase() === lookup);
+  if (matchedKey) {
+    const IconComponent = iconMap[matchedKey];
+    return <IconComponent size={24} strokeWidth={1.8} />;
+  }
+
+  return (
+    <span style={{ fontSize: '24px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      {iconInput}
+    </span>
+  );
+}
+
 function App() {
-  const [departmentData, setDepartmentData] = useState(null)
+  const [departmentInfo, setDepartmentInfo] = useState(defaultInfo)
+  const [programmesList, setProgrammesList] = useState(defaultProgrammes)
+  const [missionVisionData, setMissionVisionData] = useState(null)
+  const [researchAreasList, setResearchAreasList] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/department.xml')
-      .then((response) => response.text())
-      .then((xmlText) => {
-        const parser = new DOMParser()
-        const xml = parser.parseFromString(xmlText, 'text/xml')
+    let cancelled = false;
+    const loadData = async () => {
+      try {
+        // Fetch department info
+        try {
+          const res = await fetch(`${API_BASE}/v1/departments/chem?language=en`, { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.data && !cancelled) {
+              setDepartmentInfo({
+                title: json.data.intro_heading || defaultInfo.title,
+                description: json.data.intro_description || defaultInfo.description,
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error fetching department info:', e);
+        }
 
-        const title = xml.querySelector('title')?.textContent || ''
+        // Fetch programmes
+        try {
+          const res = await fetch(`${API_BASE}/v1/departments/chem/programmes?language=en`, { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json?.data) && json.data.length > 0 && !cancelled) {
+              setProgrammesList(json.data.map(p => ({
+                name: p.title || p.programme_type,
+                icon: p.icon_emoji,
+                details: p.description,
+              })));
+            }
+          }
+        } catch (e) {
+          console.error('Error fetching programmes:', e);
+        }
 
-        const descriptions = [...xml.querySelectorAll('info description')]
-          .map((item) => item.textContent)
+        // Fetch mission & vision
+        try {
+          const res = await fetch(`${API_BASE}/v1/departments/chem/mission-vision?language=en`, { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.data && !cancelled) {
+              setMissionVisionData(json.data);
+            }
+          }
+        } catch (e) {
+          console.error('Error fetching mission vision:', e);
+        }
 
-        const programmes = [...xml.querySelectorAll('programme')].map((item) => ({
-          name: item.querySelector('name')?.textContent || '',
-          icon: item.querySelector('icon')?.textContent || '',
-          details: item.querySelector('details')?.textContent || '',
-        }))
+        // Fetch research areas
+        try {
+          const res = await fetch(`${API_BASE}/v1/departments/chem/research-areas?language=en`, { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json?.data) && json.data.length > 0 && !cancelled) {
+              setResearchAreasList(json.data);
+            }
+          }
+        } catch (e) {
+          console.error('Error fetching research areas:', e);
+        }
 
-        setDepartmentData({
-          title,
-          descriptions,
-          programmes,
-        })
-      })
-  }, [])
+      } catch (err) {
+        console.error('Failed to load department data from API:', err);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-  if (!departmentData) {
+    loadData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
     return (
       <h2 style={{ padding: '2rem', color: '#333' }}>
         Loading...
@@ -192,31 +305,31 @@ function App() {
       <aside style={styles.sidebar}>
         <span style={styles.sidebarActiveItem}>About Us</span>
 
-        <a href="/faculty-section/department/phy/vision-mission" style={styles.sidebarLink}>
+        <a href="/faculty-section/department/chem/vision-mission" style={styles.sidebarLink}>
           Vision & Mission
         </a>
 
-        <a href="/faculty-section/department/phy/faculty" style={styles.sidebarLink}>
+        <a href="/faculty-section/department/chem/faculty" style={styles.sidebarLink}>
           Faculty
         </a>
 
-        <a href="/faculty-section/department/phy/staff" style={styles.sidebarLink}>
+        <a href="/faculty-section/department/chem/staff" style={styles.sidebarLink}>
           Staff
         </a>
 
-        <a href="/faculty-section/department/phy/programme-offered" style={styles.sidebarLink}>
+        <a href="/faculty-section/department/chem/programme-offered" style={styles.sidebarLink}>
           Programme Offered
         </a>
 
-        <a href="/faculty-section/department/phy/labs" style={styles.sidebarLink}>
+        <a href="/faculty-section/department/chem/labs" style={styles.sidebarLink}>
           Labs
         </a>
 
-        <a href="/faculty-section/department/phy/research-publications" style={styles.sidebarLink}>
+        <a href="/faculty-section/department/chem/research-publications" style={styles.sidebarLink}>
           Research Publications
         </a>
 
-        <a href="/faculty-section/department/phy/contact" style={styles.sidebarLink}>
+        <a href="/faculty-section/department/chem/contact" style={styles.sidebarLink}>
           Contact
         </a>
       </aside>
@@ -226,13 +339,13 @@ function App() {
         <div style={styles.contentBox}>
 
           <h1 style={styles.pageTitle}>
-            {departmentData.title}
+            {departmentInfo.title}
           </h1>
 
           {/* Image */}
           <img
-            src="/faculty-section/department/phy/phy_dept.jpg"
-            alt="phyistry Department"
+            src="/faculty-section/department/chem/chem_dept.jpg"
+            alt="Chemistry Department"
             style={{
               width: '100%',
               height: 'auto',
@@ -243,9 +356,11 @@ function App() {
           />
 
           {/* Description */}
-          <p style={styles.descriptionText}>
-            The Department of phyistry became an independent department in August 2009. It offers UG and PG courses for engineering departments, along with Ph.D. programs in various areas of phyistry. Since 2016–17, the department has offered an M.Tech. in phyical Technology in collaboration with the phyical Engineering department, and since 2017–18, an M.Sc. in phyistry. The department aims to expand and upgrade its PG programs to meet current industrial needs and encourages active industry participation in curriculum development and training.
-          </p>
+          {departmentInfo.description.split('\n').filter(Boolean).map((text, index) => (
+            <p key={index} style={styles.descriptionText}>
+              {text}
+            </p>
+          ))}
 
           {/* Academic Programmes */}
           <h2 style={styles.sectionTitle}>
@@ -261,13 +376,13 @@ function App() {
               marginBottom: '30px',
             }}
           >
-            {academicProgrammes.map((programme) => (
+            {programmesList.map((programme) => (
               <div
                 key={programme.name}
                 style={styles.programmeCard}
               >
                 <span style={styles.programmeIcon}>
-                  <programme.Icon size={24} strokeWidth={1.8} />
+                  {renderIcon(programme.icon || programme.Icon)}
                 </span>
 
                 <h3 style={styles.programmeName}>
@@ -281,6 +396,7 @@ function App() {
             ))}
           </div>
 
+<<<<<<< HEAD
           {/* Description */}
           {departmentData.descriptions.map((text, index) => (
             <p key={index} style={styles.descriptionText}>
@@ -288,6 +404,8 @@ function App() {
             </p>
           ))}
 
+=======
+>>>>>>> main
         </div>
       </main>
 

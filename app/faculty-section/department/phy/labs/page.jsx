@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import './phy_labs.css'
+import DepartmentLabsView from '../../_components/DepartmentLabsView'
 
 const menuItems = [
   { label: 'About Us', href: '/faculty-section/department/phy' },
@@ -47,64 +47,15 @@ const equipment = [
   'UV Visible spectrophotometer',
 ]
 
-export default function phyLabsPage() {
+export default function PhyLabsPage() {
   return (
-    <main className="phy-labs-page">
-      <div className="phy-labs-shell">
-        <aside className="phy-labs-sidebar" aria-label="Department navigation">
-          <nav>
-            {menuItems.map((item) => (
-              <Link
-                className={item.active ? 'active' : ''}
-                href={item.href}
-                key={item.label}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="phy-labs-content">
-          <h1>List of Laboratories</h1>
-
-          <table className="labs-table">
-            <thead>
-              <tr>
-                <th>Sl. No.</th>
-                <th>Laboratory Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {laboratories.map((lab, index) => (
-                <tr key={lab}>
-                  <td>{index + 1}</td>
-                  <td>{lab}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <h2 className="equipment-title">The major facilities available in Research and Development labs</h2>
-
-          <table className="labs-table">
-            <thead>
-              <tr>
-                <th>Sl. No.</th>
-                <th>Equipment's Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {equipment.map((item, index) => (
-                <tr key={item}>
-                  <td>{index + 1}</td>
-                  <td>{item}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      </div>
-    </main>
+    <DepartmentLabsView
+      departmentCode="phy"
+      menuItems={menuItems}
+      pageClassName="phy-labs-page"
+      cssPrefix="phy"
+      showCategories={true}
+      fallbackLabs={{ general: laboratories, equipment }}
+    />
   )
 }

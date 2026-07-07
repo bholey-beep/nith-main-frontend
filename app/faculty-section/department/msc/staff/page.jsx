@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import './msc_staff.css'
+import DepartmentStaffView from '../../_components/DepartmentStaffView'
 
 const menuItems = [
   { label: 'About Us', href: '/faculty-section/department/msc' },
@@ -46,62 +46,15 @@ const technicalStaff = [
   },
 ]
 
-function StaffRows({ rows }) {
-  return rows.map((member) => (
-    <tr key={`${member.serial}-${member.name}`}>
-      <td>{member.serial}</td>
-      <td>{member.name}</td>
-      <td>{member.designation}</td>
-      <td>{member.phone}</td>
-      <td>{member.email}</td>
-    </tr>
-  ))
-}
-
 export default function MscStaffPage() {
   return (
-    <main className="msc-staff-page">
-      <div className="msc-staff-shell">
-        <aside className="msc-staff-sidebar" aria-label="Department navigation">
-          <nav>
-            {menuItems.map((item) => (
-              <Link
-                className={item.active ? 'active' : ''}
-                href={item.href}
-                key={item.label}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="msc-staff-content">
-          <div className="staff-table-wrap">
-            <table className="staff-table">
-              <caption>Office Staff</caption>
-              <thead>
-                <tr>
-                  <th>Sl. No.</th>
-                  <th>Name</th>
-                  <th>Designation</th>
-                  <th>Phone No.</th>
-                  <th>Email</th>
-                </tr>
-              </thead>
-              <tbody>
-                <StaffRows rows={officeStaff} />
-
-                <tr className="staff-section-row">
-                  <td colSpan="5">Technical Staff</td>
-                </tr>
-
-                <StaffRows rows={technicalStaff} />
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
-    </main>
+    <DepartmentStaffView
+      departmentCode="msc"
+      menuItems={menuItems}
+      pageClassName="msc-staff-page"
+      cssPrefix="msc"
+      fallbackOffice={officeStaff}
+      fallbackTechnical={technicalStaff}
+    />
   )
 }

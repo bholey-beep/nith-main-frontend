@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import './phy_research.css'
+import DepartmentPublicationsView from '../../_components/DepartmentPublicationsView'
 
 const menuItems = [
   { label: 'About Us', href: '/faculty-section/department/phy' },
@@ -52,53 +52,12 @@ const publications = [
 
 export default function PhyResearchPage() {
   return (
-    <main className="phy-research-page">
-      <div className="phy-research-shell">
-        <aside className="phy-research-sidebar" aria-label="Department navigation">
-          <nav>
-            {menuItems.map((item) => (
-              <Link
-                className={item.active ? 'active' : ''}
-                href={item.href}
-                key={item.label}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="phy-research-content">
-          <h1>Research Publications</h1>
-
-          <div className="research-table-wrapper">
-            <table className="research-table">
-              <thead>
-                <tr>
-                  <th>Year</th>
-                  <th>Author(s)</th>
-                  <th>Title & Vol. No.</th>
-                  <th>Journal Name</th>
-                  <th>
-                    Indexing (SCI) Web of<br />Science/Scopus
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {publications.map((pub, index) => (
-                  <tr key={index}>
-                    <td>{pub.year}</td>
-                    <td>{pub.authors}</td>
-                    <td>{pub.title}</td>
-                    <td>{pub.journal}</td>
-                    <td>{pub.indexing}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
-    </main>
+    <DepartmentPublicationsView
+      departmentCode="phy"
+      menuItems={menuItems}
+      pageClassName="phy-research-page"
+      cssPrefix="phy"
+      fallbackPublications={publications}
+    />
   )
 }

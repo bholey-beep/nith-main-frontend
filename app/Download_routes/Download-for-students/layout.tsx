@@ -1,13 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // Added to style active tabs
+import { usePathname } from 'next/navigation'; 
 import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer'; // Assuming you want the footer here too
+import Footer from '@/app/components/footer'; 
+
+
+interface PageMeta {
+  id?: number;
+  page_type: "faculty" | "students" | "miscellaneous";
+  heading_en: string;
+  heading_hi: string;
+  subheading_en: string;
+  subheading_hi: string;
+}
+
 
 export default function DownloadsLayout({
   children,
@@ -16,6 +27,8 @@ export default function DownloadsLayout({
 }) {
   const language = useSelector((state: RootState) => state.language.value);
   const pathname = usePathname();
+
+  const [metaData, setMetaData] = useState<PageMeta | null>(null);
 
   // Define your tabs here for cleaner code
   const tabs = [
@@ -32,6 +45,34 @@ export default function DownloadsLayout({
       href: '/Download_routes/Download-for-students/doctoral',
     },
   ];
+
+
+  useEffect(() => {
+  const fetchMeta = async () => {
+    try {
+      const API_BASE = "http://localhost:4000/v1/downloads";
+
+      const res = await fetch(`${API_BASE}/meta`);
+
+      const data = await res.json();
+
+      // find students page meta
+      const studentsMeta = Array.isArray(data)
+        ? data.find((item) => item.page_type === "students")
+        : data?.data?.find(
+            (item: PageMeta) => item.page_type === "students"
+          );
+
+      if (studentsMeta) {
+        setMetaData(studentsMeta);
+      }
+    } catch (err) {
+      console.error("Meta fetch error:", err);
+    }
+  };
+
+  fetchMeta();
+}, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -68,13 +109,15 @@ export default function DownloadsLayout({
           >
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
               {language === 'en'
-                ? 'Download for Students'
-                : 'छात्रों के लिए डाउनलोड'}
+                ?  metaData?.heading_en || 'Download for Students'
+                : metaData?.heading_hi ||'छात्रों के लिए डाउनलोड'}
             </h1>
             <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto">
               {language === 'en'
-                ? 'Latest downloads, announcements, and updates from the NITH Download for Students community.'
-                : 'एनआईटीएच छात्रों के लिए डाउनलोड, घोषणाएं और नवीनतम अपडेट।'}
+               ?metaData?.subheading_en ||
+                'Latest downloads, announcements, and updates from the NITH Download for Students community.'
+                 :metaData?.subheading_hi ||
+                'एनआईटीएच छात्रों के लिए डाउनलोड, घोषणाएं और नवीनतम अपडेट।'}
             </p>
           </motion.div>
         </div>

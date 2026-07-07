@@ -11,103 +11,29 @@ const fadeUp = {
   visible: { opacity: 1, y: 0 },
 };
 
-const nitDirectors = [
-  {
-    name: 'Prof. Lalit Kumar Awasthi',
-    tenure: '10-10-2020 to 02-02-2022',
-    image: '/images/former/directors/lalit.jpg',
-  },
-  {
-    name: 'Dr. Vinod Yadava',
-    tenure: '23-03-2018 to 09-10-2020',
-    image: '/images/former/directors/vinod.jpg',
-  },
-  {
-    name: 'Dr. Ajay K Sharma',
-    tenure: '03-05-2016 to 21-03-2018',
-    image: '/images/former/directors/ajay.jpg',
-  },
-  {
-    name: 'Dr. Rajnish Shrivastava',
-    tenure: '18-10-2011 to 03-05-2016',
-    image: '/images/former/directors/rajnish.jpg',
-  },
-  {
-    name: 'Dr. R.L. Sharma',
-    tenure: '06-11-2010 to 18-10-2011',
-    image: '/images/former/directors/rlsharma.jpg',
-  },
-  {
-    name: 'Dr. I.K. Bhat',
-    tenure: '07-11-2005 to 06-11-2010',
-    image: '/images/former/directors/ikbhat.jpg',
-  },
-  {
-    name: 'Dr. S.K. Bhowmik',
-    tenure: '01-01-2005 to 06-11-2005',
-    image: '/images/former/directors/bhowmik1.jpg',
-  },
-  {
-    name: 'Dr. Chandra Shakher',
-    tenure: '07-08-2003 to 31-12-2004',
-    image: '/images/former/directors/chandra.jpg',
-  },
-  {
-    name: 'Dr. S.K. Bhowmik',
-    tenure: '04-07-2002 to 06-08-2003',
-    image: '/images/former/directors/bhowmik2.jpg',
-  },
-  {
-    name: 'Dr. R.C. Sharma',
-    tenure: '26-06-2002 to 03-07-2002',
-    image: '/images/former/directors/rcsharma.jpg',
-  },
-];
-
-const recPrincipals = [
-  {
-    name: 'Dr. R.C. Sharma',
-    tenure: '11-06-2001 to 25-06-2002',
-    image: '/images/former/rec/rcsharma.jpg',
-  },
-  {
-    name: 'Dr. S.K. Bhowmik',
-    tenure: '21-03-2000 to 10-06-2001',
-    image: '/images/former/rec/bhowmik.jpg',
-  },
-  {
-    name: 'Mrs. Anuradha Thakur (IAS)',
-    tenure: '27-10-1999 to 21-03-2000',
-    image: '/images/former/rec/anuradha.jpg',
-  },
-  {
-    name: 'Mr. Kamlesh Pant (IAS)',
-    tenure: '01-07-1999 to 23-10-1999',
-    image: '/images/former/rec/kamlesh.jpg',
-  },
-  {
-    name: 'Dr. C.L. Dhar',
-    tenure: '29-07-1998 to 30-06-1999',
-    image: '/images/former/rec/cldhar.jpg',
-  },
-  {
-    name: 'Dr. R.L. Chauhan',
-    tenure: '19-03-1994 to 25-07-1998',
-    image: '/images/former/rec/rlchauhan.jpg',
-  },
-  {
-    name: 'Dr. Rameshwar Jha',
-    tenure: '03-04-1990 to 18-03-1994',
-    image: '/images/former/rec/rameshwar.jpg',
-  },
-  {
-    name: 'Dr. R.C. Chauhan',
-    tenure: '20-01-1986 to 02-04-1990',
-    image: '/images/former/rec/rcchauhan.jpg',
-  },
-];
+import { useState, useEffect } from 'react';
 
 export default function FormerDirectorsPage() {
+  const [formerList, setFormerList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/v1/administration/former-directors')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) setFormerList(json.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  const nitDirectors = formerList.filter(f => f.type === 'NIT');
+  const recPrincipals = formerList.filter(f => f.type === 'REC');
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
   return (
     <div className="min-h-screen bg-white">
       <Header31 />

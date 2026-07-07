@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import './msc_faculty.css'
+import DepartmentFacultyView from '../../_components/DepartmentFacultyView'
 
 const menuItems = [
   { label: 'About Us', href: '/faculty-section/department/msc' },
@@ -70,73 +70,14 @@ const facultyGroups = [
   },
 ]
 
-function FacultyCard({ member, featured = false }) {
+export default function MscFacultyPage() {
   return (
-    <article className={featured ? 'faculty-card faculty-card-featured' : 'faculty-card'}>
-      <div className="faculty-photo" aria-hidden="true">
-        {featured && <div className="faculty-photo-crop" />}
-      </div>
-
-      <div className="faculty-hover-panel">
-        <p>
-          <strong>Email</strong>
-          <a href={`mailto:${member.email}`}>{member.email}</a>
-        </p>
-
-        <p>
-          <strong>Domains</strong>
-          <span>{member.interests}</span>
-        </p>
-
-        <a href="#" className="faculty-read-more">
-          Read more
-        </a>
-      </div>
-
-      <div className="faculty-info">
-        <h3>{member.name}</h3>
-        <p>{member.designation}</p>
-      </div>
-    </article>
-  )
-}
-
-export default function mscFacultyPage() {
-  return (
-    <main className="msc-faculty-page">
-      <div className="msc-faculty-shell">
-        <aside className="msc-faculty-sidebar" aria-label="Department navigation">
-          <nav>
-            {menuItems.map((item) => (
-              <Link
-                className={item.active ? 'active' : ''}
-                href={item.href}
-                key={item.label}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="msc-faculty-content">
-          {facultyGroups.map((group) => (
-            <section className="faculty-group" key={group.title}>
-              <h1>{group.title}</h1>
-
-              <div className={group.featured ? 'faculty-featured-grid' : 'faculty-grid'}>
-                {group.members.map((member) => (
-                  <FacultyCard
-                    featured={group.featured}
-                    key={member.name}
-                    member={member}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
-        </section>
-      </div>
-    </main>
+    <DepartmentFacultyView
+      departmentCode="msc"
+      menuItems={menuItems}
+      pageClassName="msc-faculty-page"
+      cssPrefix="msc"
+      fallbackGroups={facultyGroups}
+    />
   )
 }
