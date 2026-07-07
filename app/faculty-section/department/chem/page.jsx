@@ -396,16 +396,7 @@ function App() {
             ))}
           </div>
 
-<<<<<<< HEAD
-          {/* Description */}
-          {departmentData.descriptions.map((text, index) => (
-            <p key={index} style={styles.descriptionText}>
-              {text}
-            </p>
-          ))}
 
-=======
->>>>>>> main
         </div>
       </main>
 

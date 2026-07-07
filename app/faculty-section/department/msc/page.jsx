@@ -358,16 +358,7 @@ function App() {
             Faculty members have published 200+ international research papers, along with 1 Japanese patent and 9 books.
           </p>
 
-<<<<<<< HEAD
-          {/* Description */}
-          {departmentData.descriptions.map((text, index) => (
-            <p key={index} style={styles.descriptionText}>
-              {text}
-            </p>
-          ))}
 
-=======
->>>>>>> main
         </div>
       </main>
 
