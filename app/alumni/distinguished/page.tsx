@@ -6,90 +6,141 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Header31 from '@/app/components/header3';
 import Footer from '@/app/components/footer';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface DistinguishedAlumniData {
   id: number;
-  name: string;
-  batch: string;
+  name_en: string;
+  name_hn: string;
+  batch_en: string;
+  batch_hn: string;
   photo: string;
-  achievement: string;
-  department?: string;
-  linkedIn?: string;
+  achievement_en: string;
+  achievement_hn: string;
+  department_en?: string;
+  department_hn?: string;
+  linkedin?: string;
 }
 
-const sampleAlumni: DistinguishedAlumniData[] = [
+interface HeadingData {
+  title_en: string;
+  title_hn: string;
+  sub_title_en: string;
+  sub_title_hn: string;
+}
+
+const FALLBACK_HEADING: HeadingData = {
+  title_en: 'Distinguished Alumni of NITH',
+  title_hn: 'एनआईटी हमीरपुर के विशिष्ट पूर्व छात्र',
+  sub_title_en: 'Celebrating the achievements and contributions of our distinguished alumni who have made remarkable impact in their respective fields.',
+  sub_title_hn: 'हमारे विशिष्ट पूर्व छात्रों की उपलब्धियों और योगदान का जश्न मनाते हुए जिन्होंने अपने संबंधित क्षेत्रों में उल्लेखनीय प्रभाव डाला है।'
+};
+
+const FALLBACK_ALUMNI: DistinguishedAlumniData[] = [
   {
     id: 1,
-    name: 'Dr. Rajesh Sharma',
-    batch: 'B.Tech CSE 1992',
+    name_en: 'Dr. Rajesh Sharma',
+    name_hn: 'डॉ. राजेश शर्मा',
+    batch_en: 'B.Tech CSE 1992',
+    batch_hn: 'बी.टेक सीएसई 1992',
     photo: '/alumni/placeholder.png',
-    achievement:
-      'CEO & Founder, TechVentures India | Former Director at Google',
-    department: 'Computer Science & Engineering',
-    linkedIn: 'https://linkedin.com',
+    achievement_en: 'CEO & Founder, TechVentures India | Former Director at Google',
+    achievement_hn: 'सीईओ और संस्थापक, टेकवेंचर्स इंडिया | गूगल में पूर्व निदेशक',
+    department_en: 'Computer Science & Engineering',
+    department_hn: 'कंप्यूटर विज्ञान और इंजीनियरिंग',
+    linkedin: 'https://linkedin.com',
   },
   {
     id: 2,
-    name: 'Ms. Priya Mehta',
-    batch: 'B.Tech ECE 1995',
+    name_en: 'Ms. Priya Mehta',
+    name_hn: 'सुश्री प्रिया मेहता',
+    batch_en: 'B.Tech ECE 1995',
+    batch_hn: 'बी.टेक ईसीई 1995',
     photo: '/alumni/placeholder.png',
-    achievement: 'Vice President, Microsoft Research | AI Pioneer',
-    department: 'Electronics & Communication Engineering',
-    linkedIn: 'https://linkedin.com',
+    achievement_en: 'Vice President, Microsoft Research | AI Pioneer',
+    achievement_hn: 'उपाध्यक्ष, माइक्रोसॉफ्ट रिसर्च | एआई पायनियर',
+    department_en: 'Electronics & Communication Engineering',
+    department_hn: 'इलेक्ट्रॉनिक्स और संचार इंजीनियरिंग',
+    linkedin: 'https://linkedin.com',
   },
   {
     id: 3,
-    name: 'Mr. Amit Kumar Singh',
-    batch: 'B.Tech ME 1998',
+    name_en: 'Mr. Amit Kumar Singh',
+    name_hn: 'श्री अमित कुमार सिंह',
+    batch_en: 'B.Tech ME 1998',
+    batch_hn: 'बी.टेक एमई 1998',
     photo: '/alumni/placeholder.png',
-    achievement: 'Managing Director, Tata Motors | Automotive Industry Leader',
-    department: 'Mechanical Engineering',
-    linkedIn: 'https://linkedin.com',
+    achievement_en: 'Managing Director, Tata Motors | Automotive Industry Leader',
+    achievement_hn: 'प्रबंध निदेशक, टाटा मोटर्स | ऑटोमोटिव उद्योग के नेता',
+    department_en: 'Mechanical Engineering',
+    department_hn: 'मैकेनिकल इंजीनियरिंग',
+    linkedin: 'https://linkedin.com',
   },
   {
     id: 4,
-    name: 'Dr. Sunita Verma',
-    batch: 'M.Tech EE 2000',
+    name_en: 'Dr. Sunita Verma',
+    name_hn: 'डॉ. सुनीता वर्मा',
+    batch_en: 'M.Tech EE 2000',
+    batch_hn: 'एम.टेक ईई 2000',
     photo: '/alumni/placeholder.png',
-    achievement: 'Chief Scientist, ISRO | Padma Shri Awardee',
-    department: 'Electrical Engineering',
-    linkedIn: 'https://linkedin.com',
+    achievement_en: 'Chief Scientist, ISRO | Padma Shri Awardee',
+    achievement_hn: 'मुख्य वैज्ञानिक, इसरो | पद्म श्री पुरस्कार विजेता',
+    department_en: 'Electrical Engineering',
+    department_hn: 'इलेक्ट्रिकल इंजीनियरिंग',
+    linkedin: 'https://linkedin.com',
   },
   {
     id: 5,
-    name: 'Mr. Vikram Joshi',
-    batch: 'B.Tech CE 2002',
+    name_en: 'Mr. Vikram Joshi',
+    name_hn: 'श्री विक्रम जोशी',
+    batch_en: 'B.Tech CE 2002',
+    batch_hn: 'बी.टेक सीई 2002',
     photo: '/alumni/placeholder.png',
-    achievement: 'Founder & CEO, BuildTech Solutions | Forbes 30 Under 30',
-    department: 'Civil Engineering',
-    linkedIn: 'https://linkedin.com',
+    achievement_en: 'Founder & CEO, BuildTech Solutions | Forbes 30 Under 30',
+    achievement_hn: 'संस्थापक और सीईओ, बिल्डटेक सॉल्यूशंस | फोर्ब्स 30 अंडर 30',
+    department_en: 'Civil Engineering',
+    department_hn: 'सिविल इंजीनियरिंग',
+    linkedin: 'https://linkedin.com',
   },
   {
     id: 6,
-    name: 'Dr. Ananya Reddy',
-    batch: 'B.Tech CSE 2005',
+    name_en: 'Dr. Ananya Reddy',
+    name_hn: 'डॉ. अनन्या रेड्डी',
+    batch_en: 'B.Tech CSE 2005',
+    batch_hn: 'बी.टेक सीएसई 2005',
     photo: '/alumni/placeholder.png',
-    achievement: 'Professor, Stanford University | ACM Fellow',
-    department: 'Computer Science & Engineering',
-    linkedIn: 'https://linkedin.com',
+    achievement_en: 'Professor, Stanford University | ACM Fellow',
+    achievement_hn: 'प्रोफेसर, स्टैनफोर्ड यूनिवर्सिटी | एसीएम फेलो',
+    department_en: 'Computer Science & Engineering',
+    department_hn: 'कंप्यूटर विज्ञान और इंजीनियरिंग',
+    linkedin: 'https://linkedin.com',
   },
   {
     id: 7,
-    name: 'Mr. Karan Malhotra',
-    batch: 'B.Tech ECE 2008',
+    name_en: 'Mr. Karan Malhotra',
+    name_hn: 'श्री करण मल्होत्रा',
+    batch_en: 'B.Tech ECE 2008',
+    batch_hn: 'बी.टेक ईसीई 2008',
     photo: '/alumni/placeholder.png',
-    achievement: 'Co-founder, FinTech Unicorn PayEasy | Angel Investor',
-    department: 'Electronics & Communication Engineering',
-    linkedIn: 'https://linkedin.com',
+    achievement_en: 'Co-founder, FinTech Unicorn PayEasy | Angel Investor',
+    achievement_hn: 'सह-संस्थापक, फिनटेक यूनिकॉर्न पेईज़ी | एंजेल निवेशक',
+    department_en: 'Electronics & Communication Engineering',
+    department_hn: 'इलेक्ट्रॉनिक्स और संचार इंजीनियरिंग',
+    linkedin: 'https://linkedin.com',
   },
   {
     id: 8,
-    name: 'Ms. Deepika Nair',
-    batch: 'M.Tech CSE 2010',
+    name_en: 'Ms. Deepika Nair',
+    name_hn: 'सुश्री दीपिका नायर',
+    batch_en: 'M.Tech CSE 2010',
+    batch_hn: 'एम.टेक सीएसई 2010',
     photo: '/alumni/placeholder.png',
-    achievement: 'Director of Engineering, Amazon Web Services',
-    department: 'Computer Science & Engineering',
-    linkedIn: 'https://linkedin.com',
+    achievement_en: 'Director of Engineering, Amazon Web Services',
+    achievement_hn: 'इंजीनियरिंग निदेशक, अमेज़ॅन वेब सर्विसेज',
+    department_en: 'Computer Science & Engineering',
+    department_hn: 'कंप्यूटर विज्ञान और इंजीनियरिंग',
+    linkedin: 'https://linkedin.com',
   },
 ];
 
@@ -127,7 +178,7 @@ const CardSkeleton = () => (
   </div>
 );
 
-const EmptyState = () => (
+const EmptyState = ({ isHindi }: { isHindi: boolean }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -149,11 +200,12 @@ const EmptyState = () => (
       </svg>
     </div>
     <h3 className="text-xl font-semibold text-gray-900 mb-2">
-      No Records Available
+      {isHindi ? 'कोई रिकॉर्ड उपलब्ध नहीं है' : 'No Records Available'}
     </h3>
     <p className="text-gray-500 max-w-md mx-auto">
-      Distinguished alumni records will be displayed here once they are added to
-      the database.
+      {isHindi
+        ? 'डेटाबेस में विशिष्ट पूर्व छात्रों के रिकॉर्ड जोड़े जाने के बाद वे यहां दिखाई देंगे।'
+        : 'Distinguished alumni records will be displayed here once they are added to the database.'}
     </p>
   </motion.div>
 );
@@ -191,11 +243,18 @@ const AlumniPhoto = ({ src, name }: { src: string; name: string }) => {
 const AlumniCard = ({
   alumni,
   index,
+  viewProfileText,
+  isHindi
 }: {
   alumni: DistinguishedAlumniData;
   index: number;
+  viewProfileText: string;
+  isHindi: boolean;
 }) => {
   const [imgError, setImgError] = useState(false);
+  const name = isHindi ? alumni.name_hn : alumni.name_en;
+  const batch = isHindi ? alumni.batch_hn : alumni.batch_en;
+  const achievement = isHindi ? alumni.achievement_hn : alumni.achievement_en;
 
   return (
     <motion.div
@@ -217,7 +276,7 @@ const AlumniCard = ({
                   ? '/alumni/placeholder.png'
                   : alumni.photo
               }
-              alt={`Photo of ${alumni.name}`}
+              alt={`Photo of ${name}`}
               fill
               className="object-cover"
               onError={() => setImgError(true)}
@@ -225,23 +284,23 @@ const AlumniCard = ({
             />
           </div>
         </div>
-        <h4 className="font-semibold text-gray-900 text-lg">{alumni.name}</h4>
+        <h4 className="font-semibold text-gray-900 text-lg">{name}</h4>
         <span className="text-sm text-[#631012] font-medium">
-          {alumni.batch}
+          {batch}
         </span>
       </div>
 
       <div className="space-y-3">
         <div className="bg-gray-50 rounded-xl p-3">
           <span className="text-xs text-gray-500 uppercase tracking-wider font-medium block mb-1">
-            Achievement / Designation
+            {isHindi ? 'उपलब्धि / वर्तमान पद' : 'Achievement / Designation'}
           </span>
-          <p className="text-sm text-gray-700">{alumni.achievement}</p>
+          <p className="text-sm text-gray-700">{achievement}</p>
         </div>
 
-        {alumni.linkedIn && (
+        {alumni.linkedin && (
           <a
-            href={alumni.linkedIn}
+            href={alumni.linkedin}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 text-sm text-[#631012] hover:text-[#4a0c0e] transition-colors py-2"
@@ -249,7 +308,7 @@ const AlumniCard = ({
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
             </svg>
-            View Profile
+            {viewProfileText}
           </a>
         )}
       </div>
@@ -257,7 +316,7 @@ const AlumniCard = ({
   );
 };
 
-const StatsSection = ({ count }: { count: number }) => (
+const StatsSection = ({ count, yearsText, alumniText }: { count: number; yearsText: string; alumniText: string }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -268,18 +327,23 @@ const StatsSection = ({ count }: { count: number }) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="text-center">
         <div className="text-4xl font-bold text-[#631012] mb-2">{count}</div>
-        <div className="text-sm text-gray-600">Distinguished Alumni</div>
+        <div className="text-sm text-gray-600">{alumniText}</div>
       </div>
       <div className="text-center">
         <div className="text-4xl font-bold text-[#631012] mb-2">30+</div>
-        <div className="text-sm text-gray-600">Years of Excellence</div>
+        <div className="text-sm text-gray-600">{yearsText}</div>
       </div>
     </div>
   </motion.div>
 );
 
 export default function DistinguishedAlumni() {
-  const [alumni, setAlumni] = useState<DistinguishedAlumniData[]>([]);
+  const language = useSelector((state: RootState) => state.language.value) || 'en';
+  const isHindi = language === 'hi';
+
+  const [heading, setHeading] = useState<HeadingData>(FALLBACK_HEADING);
+  const [alumni, setAlumni] = useState<DistinguishedAlumniData[]>(FALLBACK_ALUMNI);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -289,54 +353,100 @@ export default function DistinguishedAlumni() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        
+        // 1. Fetch Header Details
+        try {
+          const hRes = await fetch('http://localhost:4000/api/alumni-distinguished');
+          const hData = await hRes.json();
+          if (hData && hData.title_en) {
+            setHeading(hData);
+          }
+        } catch (hErr) {
+          console.error('Fetch heading failed, using fallback:', hErr);
+        }
 
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/alumni/distinguished');
-        // const result = await response.json();
-        // if (result.success) {
-        //   setAlumni(result.data);
-        // }
+        // 2. Fetch Alumni List Records
+        try {
+          const lRes = await fetch('http://localhost:4000/api/alumni-distinguished/list');
+          const lData = await lRes.json();
+          if (Array.isArray(lData) && lData.length > 0) {
+            setAlumni(lData);
+          }
+        } catch (lErr) {
+          console.error('Fetch alumni list failed, using fallback:', lErr);
+        }
 
-        setAlumni(sampleAlumni);
         setError(null);
       } catch (err) {
         console.error('Error fetching distinguished alumni:', err);
-        setError('Failed to load distinguished alumni data');
+        setError(isHindi ? 'विशिष्ट पूर्व छात्रों का डेटा लोड करने में विफल' : 'Failed to load distinguished alumni data');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [isHindi]);
 
   const filteredAlumni = alumni
     .filter((a) => {
       if (!searchQuery) return true;
       const query = searchQuery.toLowerCase();
+      const name = isHindi ? a.name_hn : a.name_en;
+      const batch = isHindi ? a.batch_hn : a.batch_en;
+      const achievement = isHindi ? a.achievement_hn : a.achievement_en;
       return (
-        a.name.toLowerCase().includes(query) ||
-        a.batch.toLowerCase().includes(query) ||
-        a.achievement.toLowerCase().includes(query)
+        (name && name.toLowerCase().includes(query)) ||
+        (batch && batch.toLowerCase().includes(query)) ||
+        (achievement && achievement.toLowerCase().includes(query))
       );
     })
     .sort((a, b) => {
+      const nameA = isHindi ? a.name_hn : a.name_en;
+      const nameB = isHindi ? b.name_hn : b.name_en;
+      const batchA = isHindi ? a.batch_hn : a.batch_en;
+      const batchB = isHindi ? b.batch_hn : b.batch_en;
       switch (sortBy) {
         case 'name':
-          return a.name.localeCompare(b.name);
+          return (nameA || '').localeCompare(nameB || '');
         case 'batch':
-          return a.batch.localeCompare(b.batch);
+          return (batchA || '').localeCompare(batchB || '');
         default:
           return a.id - b.id;
       }
     });
 
+  // Translation Dictionaries
+  const textDict = {
+    home: isHindi ? 'होम' : 'Home',
+    alumni: isHindi ? 'पूर्व छात्र' : 'Alumni',
+    pageTitle: isHindi ? 'विशिष्ट पूर्व छात्र' : 'Distinguished Alumni',
+    searchPlaceholder: isHindi ? 'नाम, बैच, या उपलब्धि द्वारा खोजें...' : 'Search by name, batch, or achievement...',
+    sortByText: isHindi ? 'द्वारा क्रमबद्ध करें:' : 'Sort by:',
+    serialNo: isHindi ? 'क्र. सं.' : 'Serial Number',
+    photo: isHindi ? 'चित्र' : 'Photo',
+    name: isHindi ? 'नाम' : 'Name',
+    batch: isHindi ? 'बैच' : 'Batch',
+    achievement: isHindi ? 'उपलब्धि / वर्तमान पद' : 'Achievement / Current Designation',
+    viewProfile: isHindi ? 'प्रोफ़ाइल देखें' : 'View Profile',
+    yearsOfExcellence: isHindi ? 'उत्कृष्टता के वर्ष' : 'Years of Excellence',
+    totalAlumni: isHindi ? 'विशिष्ट पूर्व छात्र' : 'Distinguished Alumni',
+    knowDistinguished: isHindi ? 'क्या आप किसी विशिष्ट पूर्व छात्र को जानते हैं?' : 'Know a Distinguished Alumni?',
+    knowDesc: isHindi 
+      ? 'उत्कृष्ट पूर्व छात्रों को पहचानने में हमारी सहायता करें जिन्होंने अपने क्षेत्रों में महत्वपूर्ण योगदान दिया है। विशिष्ट पूर्व छात्र मान्यता के लिए नामांकन जमा करें।'
+      : 'Help us recognize outstanding alumni who have made significant contributions in their respective fields. Submit nominations for distinguished alumni recognition.',
+    nominateBtn: isHindi ? 'पूर्व छात्र का नामांकन करें' : 'Nominate an Alumni',
+    clearSearch: isHindi ? 'खोज स्पष्ट करें' : 'Clear search',
+    showingText: isHindi ? 'दिखा रहा है' : 'Showing',
+    ofText: isHindi ? 'का' : 'of',
+    tryAgain: isHindi ? 'पुनः प्रयास करें' : 'Try Again'
+  };
+
   return (
     <>
       <Header31 />
       <div className="min-h-screen bg-gray-50">
+        {/* Breadcrumb Navigation */}
         <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
           <div className="max-w-7xl mx-auto">
             <nav className="flex items-center space-x-2 text-sm text-gray-600">
@@ -344,18 +454,19 @@ export default function DistinguishedAlumni() {
                 href="/"
                 className="hover:text-[#800000] transition-colors duration-200"
               >
-                Home
+                {textDict.home}
               </Link>
               <span>›</span>
-              <span className="text-gray-400">Alumni</span>
+              <span className="text-gray-400">{textDict.alumni}</span>
               <span>›</span>
               <span className="text-[#800000] font-medium">
-                Distinguished Alumni
+                {textDict.pageTitle}
               </span>
             </nav>
           </div>
         </div>
 
+        {/* Hero Section */}
         <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-6">
             <motion.div
@@ -365,17 +476,16 @@ export default function DistinguishedAlumni() {
               className="text-center"
             >
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Distinguished Alumni of NITH
+                {isHindi ? heading.title_hn : heading.title_en}
               </h1>
               <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto">
-                Celebrating the achievements and contributions of our
-                distinguished alumni who have made remarkable impact in their
-                respective fields.
+                {isHindi ? heading.sub_title_hn : heading.sub_title_en}
               </p>
             </motion.div>
           </div>
         </section>
 
+        {/* Content Section */}
         <section className="py-12 md:py-16 px-4 md:px-6">
           <div className="max-w-7xl mx-auto">
             {!loading && !error && alumni.length > 0 && (
@@ -402,7 +512,7 @@ export default function DistinguishedAlumni() {
                     </svg>
                     <input
                       type="text"
-                      placeholder="Search by name, batch, or achievement..."
+                      placeholder={textDict.searchPlaceholder}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#631012] focus:ring-2 focus:ring-[#631012]/20 outline-none transition-all text-sm"
@@ -410,7 +520,7 @@ export default function DistinguishedAlumni() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-500">Sort by:</span>
+                    <span className="text-sm text-gray-500">{textDict.sortByText}</span>
                     <select
                       value={sortBy}
                       onChange={(e) =>
@@ -418,9 +528,9 @@ export default function DistinguishedAlumni() {
                       }
                       className="px-4 py-2 rounded-xl border border-gray-200 focus:border-[#631012] focus:ring-2 focus:ring-[#631012]/20 outline-none text-sm bg-white cursor-pointer"
                     >
-                      <option value="serial">Serial Number</option>
-                      <option value="name">Name</option>
-                      <option value="batch">Batch</option>
+                      <option value="serial">{isHindi ? 'क्रम संख्या' : 'Serial Number'}</option>
+                      <option value="name">{isHindi ? 'नाम' : 'Name'}</option>
+                      <option value="batch">{isHindi ? 'बैच' : 'Batch'}</option>
                     </select>
                   </div>
                 </div>
@@ -428,13 +538,13 @@ export default function DistinguishedAlumni() {
                 {searchQuery && (
                   <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
                     <span>
-                      Showing {filteredAlumni.length} of {alumni.length} alumni
+                      {textDict.showingText} {filteredAlumni.length} {textDict.ofText} {alumni.length} {textDict.alumni}
                     </span>
                     <button
                       onClick={() => setSearchQuery('')}
                       className="text-[#631012] hover:underline"
                     >
-                      Clear search
+                      {textDict.clearSearch}
                     </button>
                   </div>
                 )}
@@ -467,7 +577,7 @@ export default function DistinguishedAlumni() {
                   onClick={() => window.location.reload()}
                   className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                 >
-                  Try Again
+                  {textDict.tryAgain}
                 </button>
               </motion.div>
             )}
@@ -489,12 +599,13 @@ export default function DistinguishedAlumni() {
 
             {!loading && !error && filteredAlumni.length === 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-8">
-                <EmptyState />
+                <EmptyState isHindi={isHindi} />
               </div>
             )}
 
             {!loading && !error && filteredAlumni.length > 0 && (
               <>
+                {/* Desktop Data Table view */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -504,7 +615,7 @@ export default function DistinguishedAlumni() {
                   <div className="px-6 md:px-8 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                     <h3 className="text-lg md:text-xl font-semibold text-gray-900 flex items-center gap-3">
                       <span className="w-1.5 h-6 bg-[#631012] rounded-full"></span>
-                      Our Distinguished Alumni
+                      {isHindi ? 'हमारे विशिष्ट पूर्व छात्र' : 'Our Distinguished Alumni'}
                     </h3>
                   </div>
 
@@ -513,95 +624,108 @@ export default function DistinguishedAlumni() {
                       <thead>
                         <tr className="bg-gray-50/50">
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-[6%]">
-                            Sl. No.
+                            {textDict.serialNo}
                           </th>
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-[8%]">
-                            Photo
+                            {textDict.photo}
                           </th>
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-[20%]">
-                            Name
+                            {textDict.name}
                           </th>
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-[18%]">
-                            Batch
+                            {textDict.batch}
                           </th>
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-[48%]">
-                            Achievement / Current Designation
+                            {textDict.achievement}
                           </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {filteredAlumni.map((alumnus, index) => (
-                          <motion.tr
-                            key={alumnus.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: index * 0.03 }}
-                            className="hover:bg-gray-50/80 transition-colors duration-200 group"
-                          >
-                            <td className="px-6 py-5 whitespace-nowrap">
-                              <span className="text-sm font-medium text-gray-500">
-                                {index + 1}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5">
-                              <AlumniPhoto
-                                src={alumnus.photo}
-                                name={alumnus.name}
-                              />
-                            </td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-gray-900 group-hover:text-[#631012] transition-colors">
-                                  {alumnus.name}
+                        {filteredAlumni.map((alumnus, index) => {
+                          const name = isHindi ? alumnus.name_hn : alumnus.name_en;
+                          const batch = isHindi ? alumnus.batch_hn : alumnus.batch_en;
+                          const achievement = isHindi ? alumnus.achievement_hn : alumnus.achievement_en;
+
+                          return (
+                            <motion.tr
+                              key={alumnus.id}
+                              initial={{ opacity: 0, x: -10 }}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ delay: index * 0.03 }}
+                              className="hover:bg-gray-50/80 transition-colors duration-200 group"
+                            >
+                              <td className="px-6 py-5 whitespace-nowrap">
+                                <span className="text-sm font-medium text-gray-500">
+                                  {index + 1}
                                 </span>
-                                {alumnus.linkedIn && (
-                                  <a
-                                    href={alumnus.linkedIn}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-[#0077b5] transition-colors"
-                                    title="LinkedIn Profile"
-                                  >
-                                    <svg
-                                      className="w-4 h-4"
-                                      fill="currentColor"
-                                      viewBox="0 0 24 24"
+                              </td>
+                              <td className="px-6 py-5">
+                                <AlumniPhoto
+                                  src={alumnus.photo}
+                                  name={name}
+                                />
+                              </td>
+                              <td className="px-6 py-5">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-gray-900 group-hover:text-[#631012] transition-colors">
+                                    {name}
+                                  </span>
+                                  {alumnus.linkedin && (
+                                    <a
+                                      href={alumnus.linkedin}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-gray-400 hover:text-[#0077b5] transition-colors"
+                                      title="LinkedIn Profile"
                                     >
-                                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                                    </svg>
-                                  </a>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#631012]/10 text-[#631012]">
-                                {alumnus.batch}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5">
-                              <p className="text-gray-600 leading-relaxed">
-                                {alumnus.achievement}
-                              </p>
-                            </td>
-                          </motion.tr>
-                        ))}
+                                      <svg
+                                        className="w-4 h-4"
+                                        fill="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                                      </svg>
+                                    </a>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-5">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#631012]/10 text-[#631012]">
+                                  {batch}
+                                </span>
+                              </td>
+                              <td className="px-6 py-5">
+                                <p className="text-gray-600 leading-relaxed">
+                                  {achievement}
+                                </p>
+                              </td>
+                            </motion.tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 </motion.div>
 
+                {/* Mobile stacked Card view */}
                 <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {filteredAlumni.map((alumnus, index) => (
                     <AlumniCard
                       key={alumnus.id}
                       alumni={alumnus}
                       index={index}
+                      viewProfileText={textDict.viewProfile}
+                      isHindi={isHindi}
                     />
                   ))}
                 </div>
 
-                <StatsSection count={alumni.length} />
+                <StatsSection 
+                  count={alumni.length} 
+                  yearsText={textDict.yearsOfExcellence} 
+                  alumniText={textDict.totalAlumni} 
+                />
               </>
             )}
 
@@ -633,18 +757,16 @@ export default function DistinguishedAlumni() {
                   </div>
                   <div className="text-center md:text-left">
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                      Know a Distinguished Alumni?
+                      {textDict.knowDistinguished}
                     </h4>
-                    <p className="text-gray-600 mb-4">
-                      Help us recognize outstanding alumni who have made
-                      significant contributions in their respective fields.
-                      Submit nominations for distinguished alumni recognition.
+                    <p className="text-gray-600 mb-4 text-sm md:text-base">
+                      {textDict.knowDesc}
                     </p>
                     <Link
                       href="/alumni/registration"
                       className="inline-flex items-center gap-2 px-6 py-3 bg-[#631012] text-white rounded-xl hover:bg-[#4a0c0e] transition-colors font-medium text-sm"
                     >
-                      <span>Nominate an Alumni</span>
+                      <span>{textDict.nominateBtn}</span>
                       <svg
                         className="w-4 h-4"
                         fill="none"

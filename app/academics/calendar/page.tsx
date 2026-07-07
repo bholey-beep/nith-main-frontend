@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Header31 from '@/app/components/header3';
@@ -18,40 +18,32 @@ type Doc = {
   url?: string;
 };
 
-const ODD_DOCS: Doc[] = [
-  {
-    id: 'odd-1',
-    title: 'Academic Calendar - Odd Semester (AY 2025-26)',
-    date: '2025-07-01',
-    url: '/pdfs/calendar-odd-2025-26.pdf',
-  },
-  {
-    id: 'odd-2',
-    title: 'Examination Schedule - Odd Semester Jan 2026',
-    date: '2026-01-05',
-    url: '/pdfs/exam-schedule-odd-2026.pdf',
-  },
-];
-
-const EVEN_DOCS: Doc[] = [
-  {
-    id: 'even-1',
-    title: 'Academic Calendar - Even Semester (AY 2025-26)',
-    date: '2026-01-01',
-    url: '/pdfs/calendar-even-2025-26.pdf',
-  },
-  {
-    id: 'even-2',
-    title: 'Examination Schedule - Even Semester Apr 2026',
-    date: '2026-04-10',
-    url: '/pdfs/exam-schedule-even-2026.pdf',
-  },
-];
-
 export default function Page() {
   const [tab, setTab] = useState<'odd' | 'even'>('even');
+  const [allCalendars, setAllCalendars] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const docs = tab === 'odd' ? ODD_DOCS : EVEN_DOCS;
+  useEffect(() => {
+    fetch('http://localhost:5000/api/v1/academics/calendars')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) setAllCalendars(json.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  const filteredDocs = allCalendars.filter(doc => {
+    const title = doc.title?.toLowerCase() || '';
+    if (tab === 'odd') return title.includes('odd');
+    if (tab === 'even') return title.includes('even');
+    return true;
+  });
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-black">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-white">
@@ -79,10 +71,7 @@ export default function Page() {
       <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-700"></div>
         </div>
-
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4xIi8+PC9nPjwvc3ZnPg==')] opacity-5"></div>
 
         <motion.div
           initial="hidden"
@@ -111,14 +100,12 @@ export default function Page() {
               <button
                 onClick={() => setTab('odd')}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${tab === 'odd' ? 'bg-white text-[#800000] shadow' : 'text-gray-700 hover:bg-gray-200'}`}
-                aria-pressed={tab === 'odd'}
               >
                 Odd Semester
               </button>
               <button
                 onClick={() => setTab('even')}
                 className={`ml-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${tab === 'even' ? 'bg-white text-[#800000] shadow' : 'text-gray-700 hover:bg-gray-200'}`}
-                aria-pressed={tab === 'even'}
               >
                 Even Semester
               </button>
@@ -130,74 +117,69 @@ export default function Page() {
               <colgroup>
                 <col style={{ width: '6%' }} />
                 <col style={{ width: '64%' }} />
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '18%' }} />
+                <col style={{ width: '30%' }} />
               </colgroup>
               <thead>
-                <tr className="bg-gray-50 text-sm text-gray-600">
+                <tr className="bg-gray-50 text-sm text-gray-600 font-bold uppercase">
                   <th className="py-3 px-4">Sl.</th>
-                  <th className="py-3 px-4">Document</th>
-                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4">Document Title & Description</th>
                   <th className="py-3 px-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {docs.map((d, i) => (
-                  <tr
-                    key={d.id}
-                    className={`border-b hover:bg-gray-50 ${i % 2 === 1 ? 'bg-gray-50' : ''}`}
-                  >
-                    <td className="py-3 px-4 text-sm text-gray-700 align-top">
-                      {i + 1}
-                    </td>
-                    <td className="py-3 px-4 align-top">
-                      <a
-                        href={d.url ?? '#'}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-gray-900 font-medium hover:text-[#800000]"
-                      >
-                        {d.title}
-                      </a>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600 align-top">
-                      {d.date ?? '-'}
-                    </td>
-                    <td className="py-3 px-4 align-top">
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={d.url ?? '#'}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-full text-sm bg-white text-[#800000] border-[#800000]"
-                        >
-                          View
-                        </a>
-                        <a
-                          href={d.url ?? '#'}
-                          download
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#800000] text-white rounded-full text-sm"
-                        >
-                          Download
-                        </a>
-                      </div>
-                    </td>
+                {filteredDocs.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-gray-500">No {tab} semester calendars found.</td>
                   </tr>
-                ))}
+                ) : (
+                  filteredDocs.map((d, i) => (
+                    <tr
+                      key={d.id}
+                      className={`border-b hover:bg-gray-50 transition-colors ${i % 2 === 1 ? 'bg-gray-50' : ''}`}
+                    >
+                      <td className="py-4 px-4 text-sm text-gray-700 align-top font-bold">
+                        {i + 1}
+                      </td>
+                      <td className="py-4 px-4 align-top">
+                        <div className="text-gray-900 font-bold text-lg mb-1">{d.title}</div>
+                        <div className="text-gray-500 text-sm">{d.description}</div>
+                      </td>
+                      <td className="py-4 px-4 align-top">
+                        <div className="flex items-center gap-3">
+                          <a
+                            href={d.view_url ?? '#'}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 border rounded-full text-sm font-bold bg-white text-[#800000] border-[#800000] hover:bg-[#800000] hover:text-white transition-all"
+                          >
+                            View
+                          </a>
+                          <a
+                            href={d.pdf_url ?? '#'}
+                            download
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#800000] text-white rounded-full text-sm font-bold hover:bg-[#631012] transition-all"
+                          >
+                            Download
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </section>
 
-        <section className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-medium text-gray-900">Notes</h3>
-          <p className="mt-2 text-gray-700 text-sm">
+        <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Official Notes</h3>
+          <p className="text-gray-700 leading-relaxed">
             Please refer to the official institute notices for any last-minute
             changes to calendars or examination schedules. For queries contact
             the Office of Academic Affairs at{' '}
             <a
               href="mailto:academic@nith.ac.in"
-              className="text-[#800000] underline"
+              className="text-[#800000] font-bold underline"
             >
               academic@nith.ac.in
             </a>

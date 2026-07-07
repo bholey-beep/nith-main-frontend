@@ -1,116 +1,93 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 import Header31 from '@/app/components/header3';
 import Footer from '@/app/components/footer';
+import { FileText, Download, Eye, Calendar, AlertCircle } from 'lucide-react';
 
-interface NewsItem {
+interface NoticeItem {
   id: number;
-  title: string;
-  description: string;
-  image: string;
-  date: string;
-  category: string;
-  slug: string;
+  title_en: string;
+  title_hn: string;
+  description_en: string;
+  description_hn: string;
+  category_en: string;
+  category_hn: string;
+  date_en: string;
+  date_hn: string;
+  priority_en: string;
+  priority_hn: string;
+  view_url: string;
+  download_url: string;
 }
 
-interface ArchiveMonth {
-  month: string;
-  year: number;
-  count: number;
-  key: string;
-}
-
-const initialNewsData: NewsItem[] = [
+const INITIAL_NOTICES: NoticeItem[] = [
   {
-    id: 1,
-    title: 'NITH Faculty Association Announces Annual Meet 2025',
-    description:
-      'The NIT Hamirpur Faculty Association is pleased to announce the Annual Faculty Meet scheduled for March 2025. All registered Faculty are cordially invited to participate in this grand event celebrating our shared legacy.',
-    image: '/news/Faculty-meet.jpg',
-    date: '2025-01-15',
-    category: 'Events',
-    slug: 'annual-meet-2025',
+    id: -1,
+    title_en: 'Faculty Performance Appraisal Submission Deadline',
+    title_hn: 'संकाय प्रदर्शन मूल्यांकन जमा करने की समय सीमा',
+    description_en: 'All faculty members are requested to submit their annual performance appraisal reports by the stipulated deadline.',
+    description_hn: 'सभी संकाय सदस्यों से अनुरोध है कि वे निर्धारित समय सीमा तक अपनी वार्षिक प्रदर्शन मूल्यांकन रिपोर्ट जमा करें।',
+    category_en: 'Academic',
+    category_hn: 'अकादमिक',
+    date_en: 'January 10, 2025',
+    date_hn: '10 जनवरी, 2025',
+    priority_en: 'High',
+    priority_hn: 'उच्च',
+    view_url: '/documents/notice',
+    download_url: '/documents/notice.pdf',
   },
   {
-    id: 2,
-    title: 'Distinguished Faculty Award Nominations Open',
-    description:
-      'Nominations are now open for the Distinguished Faculty Award 2025. The award recognizes outstanding contributions by NITH Faculty in their respective fields. Submit your nominations before the deadline.',
-    image: '/news/award.jpg',
-    date: '2025-01-12',
-    category: 'Awards',
-    slug: 'distinguished-Faculty-award-2025',
-  },
+    id: -2,
+    title_en: 'Revised Leave Rules for Faculty Members',
+    title_hn: 'संकाय सदस्यों के लिए संशोधित अवकाश नियम',
+    description_en: 'Notification regarding revised leave rules and entitlements for regular and contractual faculty members.',
+    description_hn: 'नियमित और संविदात्मक संकाय सदस्यों के लिए संशोधित अवकाश नियमों और पात्रता के संबंध में अधिसूचना।',
+    category_en: 'Leave & Benefits',
+    category_hn: 'अवकाश और लाभ',
+    date_en: 'January 8, 2025',
+    date_hn: '08 जनवरी, 2025',
+    priority_en: 'Medium',
+    priority_hn: 'मध्यम',
+    view_url: '/documents/leave-rules',
+    download_url: '/documents/leave-rules.pdf',
+  }
 ];
 
-const ITEMS_PER_PAGE = 10;
-
-const NewsSkeleton = () => (
-  <div className="animate-pulse space-y-6">
-    {[1, 2, 3, 4, 5].map((i) => (
-      <div key={i} className="flex gap-5 p-5 bg-white rounded-xl">
-        <div className="w-32 h-24 bg-gray-200 rounded-lg flex-shrink-0"></div>
-        <div className="flex-1 space-y-3">
-          <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-full"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-          <div className="h-3 bg-gray-200 rounded w-24"></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-const ArchiveSkeleton = () => (
-  <div className="animate-pulse space-y-3">
-    {[1, 2, 3, 4, 5, 6].map((i) => (
-      <div key={i} className="h-8 bg-gray-200 rounded"></div>
-    ))}
-  </div>
-);
-
 export default function FacultyNewsroom() {
-  const [news, setNews] = useState<NewsItem[]>(initialNewsData);
-  const [archives, setArchives] = useState<ArchiveMonth[]>([]);
+  const language = useSelector((state: RootState) => state.language.value);
+  const [notices, setNotices] = useState<NoticeItem[]>([]);
+  const [heading, setHeading] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedArchive, setSelectedArchive] = useState<string | null>(null);
-
-  const generateArchives = (newsData: NewsItem[]): ArchiveMonth[] => {
-    const archiveMap = new Map<string, ArchiveMonth>();
-    newsData.forEach((item) => {
-      const date = new Date(item.date);
-      const month = date.toLocaleDateString('en-US', { month: 'long' });
-      const year = date.getFullYear();
-      const key = `${year}-${date.getMonth()}`;
-      if (archiveMap.has(key)) {
-        archiveMap.get(key)!.count++;
-      } else {
-        archiveMap.set(key, { month, year, count: 1, key });
-      }
-    });
-    return Array.from(archiveMap.values()).sort((a, b) => {
-      if (a.year !== b.year) return b.year - a.year;
-      return (
-        new Date(`${b.month} 1, ${b.year}`).getMonth() -
-        new Date(`${a.month} 1, ${a.year}`).getMonth()
-      );
-    });
-  };
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setNews(initialNewsData);
-        setArchives(generateArchives(initialNewsData));
+        const hRes = await fetch('http://localhost:4000/api/faculty-notices');
+        const hData = await hRes.json();
+        setHeading(hData);
+
+        const lRes = await fetch('http://localhost:4000/api/faculty-notices/list');
+        const lData = await lRes.json();
+        
+        let merged = Array.isArray(lData) ? [...lData] : [];
+        INITIAL_NOTICES.forEach(def => {
+            // Check if either the title or the ID already exists in the merged list
+            const exists = merged.some(m => m.title_en === def.title_en || String(m.id) === String(def.id));
+            if (!exists) {
+                merged.push(def);
+            }
+        });
+        setNotices(merged);
       } catch (err) {
-        console.error('Error fetching news:', err);
+        console.error('Error fetching notices:', err);
+        setNotices(INITIAL_NOTICES);
       } finally {
         setLoading(false);
       }
@@ -118,142 +95,146 @@ export default function FacultyNewsroom() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    setArchives(generateArchives(news));
-  }, [news]);
+  const categories = useMemo(() => {
+    const cats = new Set(['All']);
+    notices.forEach(n => cats.add(n.category_en));
+    return Array.from(cats);
+  }, [notices]);
 
-  const filteredNews = useMemo(() => {
-    if (!selectedArchive) return news;
-    return news.filter((item) => {
-      const date = new Date(item.date);
-      const key = `${date.getFullYear()}-${date.getMonth()}`;
-      return key === selectedArchive;
-    });
-  }, [news, selectedArchive]);
+  const filteredNotices = useMemo(() => {
+    if (selectedCategory === 'All') return notices;
+    return notices.filter(n => n.category_en === selectedCategory);
+  }, [notices, selectedCategory]);
 
-  const totalPages = Math.ceil(filteredNews.length / ITEMS_PER_PAGE);
-  const paginatedNews = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredNews.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredNews, currentPage]);
-
-  const handleArchiveClick = (key: string | null) => {
-    setSelectedArchive(key);
-    setCurrentPage(1);
-  };
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 3) {
-        pages.push(1, 2, 3, 4, '...', totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(
-          1,
-          '...',
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages
-        );
-      } else {
-        pages.push(
-          1,
-          '...',
-          currentPage - 1,
-          currentPage,
-          currentPage + 1,
-          '...',
-          totalPages
-        );
-      }
-    }
-    return pages;
+  const getPriorityColor = (priority: string) => {
+    if (priority === 'High' || priority === 'उच्च') return 'bg-red-100 text-red-800';
+    if (priority === 'Medium' || priority === 'मध्यम') return 'bg-amber-100 text-amber-800';
+    return 'bg-green-100 text-green-800';
   };
 
   return (
     <>
       <Header31 />
-      <div className="min-h-screen bg-gray-50">
-        {/* Breadcrumb */}
-        <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-          <div className="max-w-7xl mx-auto">
-            <nav className="flex items-center space-x-2 text-sm text-gray-600">
-              <Link
-                href="/"
-                className="hover:text-[#800000] transition-colors duration-200"
+      <div className="min-h-screen bg-gray-50 pb-20">
+        {/* Hero Section */}
+        <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-16 md:py-24 shadow-inner">
+          <div className="max-w-7xl mx-auto px-6 text-center">
+            <motion.h1 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight"
+            >
+              {heading ? (language === 'en' ? heading.title_en : heading.title_hn) : (language === 'en' ? 'Faculty Notices' : 'संकाय संबंधित सूचनाएं')}
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto font-light leading-relaxed"
+            >
+              {heading ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'Important notices, circulars, and announcements for faculty members.' : 'संकाय सदस्यों के लिए महत्वपूर्ण सूचनाएं, परिपत्र और घोषणाएं।')}
+            </motion.p>
+          </div>
+        </section>
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-6 -mt-10">
+          {/* Filters */}
+          <div className="bg-white p-4 rounded-xl shadow-xl mb-10 flex flex-wrap gap-3 items-center justify-center border border-gray-100">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+                  selectedCategory === cat 
+                  ? 'bg-[#631012] text-white shadow-lg scale-105' 
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
               >
-                Home
-              </Link>
-              <span>›</span>
-              <span className="text-gray-400">Faculty</span>
-              <span>›</span>
-              <span className="text-[#800000] font-medium">Notices</span>
-            </nav>
+                {language === 'en' ? cat : (
+                    cat === 'All' ? 'सभी' :
+                    cat === 'Academic' ? 'अकादमिक' :
+                    cat === 'Administrative' ? 'प्रशासनिक' :
+                    cat === 'Recruitment' ? 'भर्ती' :
+                    cat === 'Promotions' ? 'पदोन्नति' :
+                    cat === 'Leave & Benefits' ? 'अवकाश और लाभ' : cat
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Notices Grid */}
+          <div className="space-y-6">
+            {loading ? (
+                <div className="text-center py-20 text-gray-400">Loading notices...</div>
+            ) : filteredNotices.length > 0 ? (
+                filteredNotices.map((notice, idx) => (
+                    <motion.div
+                        key={notice.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                    >
+                        <div className="flex flex-col md:flex-row md:items-center p-6 gap-6">
+                            {/* Date Box */}
+                            <div className="flex-shrink-0 w-24 h-24 bg-gray-50 rounded-2xl flex flex-col items-center justify-center border border-gray-100 group-hover:bg-[#631012]/5 transition-colors">
+                                <Calendar className="w-6 h-6 text-[#631012] mb-1" />
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter text-center px-1">
+                                    {language === 'en' ? notice.date_en : notice.date_hn}
+                                </span>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1">
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    <span className="px-3 py-1 bg-[#631012]/10 text-[#631012] text-xs font-bold rounded-full uppercase tracking-wider">
+                                        {language === 'en' ? notice.category_en : notice.category_hn}
+                                    </span>
+                                    <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${getPriorityColor(notice.priority_en)}`}>
+                                        <AlertCircle size={12} />
+                                        {language === 'en' ? notice.priority_en : notice.priority_hn}
+                                    </span>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#631012] transition-colors">
+                                    {language === 'en' ? notice.title_en : notice.title_hn}
+                                </h3>
+                                <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
+                                    {language === 'en' ? notice.description_en : notice.description_hn}
+                                </p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-3 md:flex-col lg:flex-row">
+                                <a 
+                                    href={notice.view_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors"
+                                >
+                                    <Eye size={16} /> {language === 'en' ? 'View' : 'देखें'}
+                                </a>
+                                <a 
+                                    href={notice.download_url.startsWith('http') 
+                                        ? `${notice.download_url}${notice.download_url.includes('?') ? '&' : '?'}response-content-disposition=attachment` 
+                                        : notice.download_url
+                                    }
+                                    download
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-[#631012] text-white rounded-xl text-sm font-bold hover:bg-[#7a1214] transition-colors shadow-lg shadow-[#631012]/20"
+                                >
+                                    <Download size={16} /> {language === 'en' ? 'Download' : 'डाउनलोड'}
+                                </a>
+                            </div>
+                        </div>
+                    </motion.div>
+                ))
+            ) : (
+                <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border-2 border-dashed">
+                    No notices found in this category.
+                </div>
+            )}
           </div>
         </div>
-
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center"
-            >
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Faculty Notices
-              </h1>
-              <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto">
-                Latest news, announcements, and updates from the NITH Faculty
-                Notices.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-        <section className="py-12 md:py-16 px-4 md:px-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="w-full">
-              <div className="w-full bg-white rounded-t-xl border border-gray-200 overflow-hidden">
-                {/* Header Grid */}
-                <div className="grid grid-cols-[80px_1fr_140px_140px] gap-4 bg-gray-50 border-b border-gray-200 p-4 text-sm font-semibold text-gray-700">
-                  <div className="text-center text-gray-500">S.I no</div>
-                  <div className="uppercase tracking-wider text-xs font-bold text-[#631012]">
-                    Particulars
-                  </div>
-                  <div className="text-center uppercase tracking-wider text-xs font-bold text-[#631012]">
-                    Remarks
-                  </div>
-                  <div className="text-center uppercase tracking-wider text-xs font-bold text-[#631012]">
-                    date of Upload
-                  </div>
-                </div>
-                {/* Example Data Row (to show alignment) */}
-                <div className="grid grid-cols-[80px_1fr_140px_140px] gap-4 p-4 border-b border-gray-100 hover:bg-gray-50 items-center">
-                  <div className="text-center font-mono text-gray-400">01</div>
-                  <div className="text-gray-600 text-sm">
-                    Registration form for the 2025 alumni meet.
-                  </div>
-                  <div className="text-gray-600 text-sm">
-                    Registration form for the 2025 alumni meet.
-                  </div>
-                  <div className="text-gray-600 text-sm">dates</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
       <Footer />
     </>

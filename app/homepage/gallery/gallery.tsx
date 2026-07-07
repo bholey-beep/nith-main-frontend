@@ -1,22 +1,95 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+
+interface GalleryImage {
+  title_en: string;
+  title_hi: string;
+  category_en: string;
+  category_hi: string;
+  altText_en: string;
+  altText_hi: string;
+  imageUrl: string;
+}
+
+interface GalleryData {
+  heading_en: string;
+  heading_hi: string;
+  description_en: string;
+  description_hi: string;
+  images: GalleryImage[];
+}
 
 function Gallery() {
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const language = useSelector((state: RootState) => state.language.value);
+  const isHindi = language === 'hi' || language === 'hn';
 
-  const galleryImages = Array.from({ length: 12 }).map((_, i) => ({
-    id: i + 1,
-    src:
+  const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const [galleryData, setGalleryData] = useState<GalleryData>({
+    heading_en: 'Gallery',
+    heading_hi: 'गैलरी',
+    description_en: 'Explore moments from our campus events, achievements, and vibrant community.',
+    description_hi: 'हमारे परिसर के कार्यक्रमों, उपलब्धियों और जीवंत समुदाय के क्षणों का अन्वेषण करें।',
+    images: [],
+  });
+  const [loading, setLoading] = useState(true);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+  const getImageUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return `${API_URL}${url}`;
+  };
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const res = await fetch(`${API_URL}/v1/homepage/gallery`);
+        if (res.ok) {
+          const data = await res.json();
+          setGalleryData({
+            heading_en: data.heading_en || '',
+            heading_hi: data.heading_hi || '',
+            description_en: data.description_en || '',
+            description_hi: data.description_hi || '',
+            images: data.images || [],
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching homepage gallery:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGallery();
+  }, [API_URL]);
+
+  const defaultImages: GalleryImage[] = Array.from({ length: 12 }).map((_, i) => ({
+    title_en: `Gallery Image ${i + 1}`,
+    title_hi: `गैलरी इमेज ${i + 1}`,
+    category_en: ['Event', 'Achievement', 'Campus'][i % 3],
+    category_hi: ['कार्यक्रम', 'उपलब्धि', 'परिसर'][i % 3],
+    altText_en: `Gallery Image ${i + 1}`,
+    altText_hi: `गैलरी इमेज ${i + 1}`,
+    imageUrl:
       i % 3 === 0
         ? '/award.jpg'
         : i % 2 === 0
           ? '/direct.jpg'
           : '/workshop.jpg',
-    title: `Gallery Image ${i + 1}`,
-    category: ['Event', 'Achievement', 'Campus'][i % 3],
   }));
+
+  const activeImages = galleryData.images && galleryData.images.length > 0 ? galleryData.images : defaultImages;
+  const activeHeading = (isHindi ? galleryData.heading_hi : galleryData.heading_en) || (isHindi ? 'गैलरी' : 'Gallery');
+  const activeDescription = (isHindi ? galleryData.description_hi : galleryData.description_en) || (isHindi 
+    ? 'हमारे परिसर के कार्यक्रमों, उपलब्धियों और जीवंत समुदाय के क्षणों का अन्वेषण करें।' 
+    : 'Explore moments from our campus events, achievements, and vibrant community.');
 
   return (
     <section className="py-16 px-6 bg-white">
@@ -24,28 +97,27 @@ function Gallery() {
         {/* Header */}
         <div className="mb-12">
           <h2 className="text-4xl font-bold text-[#631012] mb-3 border-b-4 border-[#631012] pb-2 inline-block">
-            Gallery
+            {activeHeading}
           </h2>
           <p className="text-gray-600 mt-4">
-            Explore moments from our campus events, achievements, and vibrant
-            community.
+            {activeDescription}
           </p>
         </div>
 
         {/* Masonry Grid Gallery */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {galleryImages.map((image) => {
+          {activeImages.map((image, idx) => {
             return (
               <div
-                key={image.id}
-                onClick={() => setSelectedImage(image.id)}
+                key={idx}
+                onClick={() => setSelectedImage(idx)}
                 className="group relative overflow-hidden rounded-2xl border-2 border-gray-200 shadow-md hover:shadow-xl hover:border-[#631012] transition-all duration-300 cursor-pointer h-72 w-full"
               >
                 {/* Image */}
                 <div className="relative w-full h-full">
                   <Image
-                    src={image.src}
-                    alt={image.title}
+                    src={getImageUrl(image.imageUrl)}
+                    alt={isHindi ? image.altText_hi : image.altText_en}
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -56,13 +128,13 @@ function Gallery() {
                   {/* Category badge */}
                   <div className="mb-3">
                     <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-bold rounded-full border border-white/30">
-                      {image.category}
+                      {isHindi ? image.category_hi : image.category_en}
                     </span>
                   </div>
 
                   {/* Title */}
                   <h3 className="text-white font-bold text-lg">
-                    {image.title}
+                    {isHindi ? image.title_hi : image.title_en}
                   </h3>
                 </div>
 
@@ -87,7 +159,7 @@ function Gallery() {
         </div>
 
         {/* Modal/Lightbox */}
-        {selectedImage && (
+        {selectedImage !== null && (
           <div
             className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={() => setSelectedImage(null)}
@@ -99,8 +171,8 @@ function Gallery() {
               {/* Image display */}
               <div className="relative w-full h-96">
                 <Image
-                  src={galleryImages[selectedImage - 1].src}
-                  alt={galleryImages[selectedImage - 1].title}
+                  src={getImageUrl(activeImages[selectedImage].imageUrl)}
+                  alt={isHindi ? activeImages[selectedImage].altText_hi : activeImages[selectedImage].altText_en}
                   fill
                   className="object-cover"
                 />
@@ -117,10 +189,10 @@ function Gallery() {
               {/* Info */}
               <div className="p-6 bg-white">
                 <h2 className="text-2xl font-bold text-[#631012] mb-2">
-                  {galleryImages[selectedImage - 1].title}
+                  {isHindi ? activeImages[selectedImage].title_hi : activeImages[selectedImage].title_en}
                 </h2>
                 <p className="text-gray-600">
-                  {galleryImages[selectedImage - 1].category}
+                  {isHindi ? activeImages[selectedImage].category_hi : activeImages[selectedImage].category_en}
                 </p>
               </div>
             </div>

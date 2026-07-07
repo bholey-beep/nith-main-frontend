@@ -1,12 +1,10 @@
 'use client';
-
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
+import { RootState } from '../../redux/store';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -15,9 +13,29 @@ const fadeUp = {
 
 export default function ChairpersonPage() {
   const language = useSelector((state: RootState) => state.language.value);
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/v1/administration/chairperson')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data.length > 0) {
+          setData(json.data[0]);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching chairperson:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!data) return <div className="min-h-screen flex items-center justify-center">No data found.</div>;
+
   return (
     <div className="min-h-screen bg-white">
-      <Header31 />
 
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
@@ -71,11 +89,11 @@ export default function ChairpersonPage() {
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="flex-1">
                 <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
-                  {language == 'en' ? 'Shri Sanjay Gupta' : 'श्री संजय गुप्ता'}
+                  {data.name}
                 </h2>
 
                 <p className="text-gray-700 mb-4">
-                  {language == 'en' ? 'Shri Sanjay Gupta' : 'श्री संजय गुप्ता'}
+                  {data.title}
                 </p>
 
                 <ul className="text-gray-600 space-y-2">
@@ -103,10 +121,8 @@ export default function ChairpersonPage() {
                       : 'अध्यक्ष का संदेश'}
                   </h3>
 
-                  <p className="text-gray-700 mb-3">
-                    {language == 'en'
-                      ? `Shri Sanjay Gupta warmly welcomes you to the Institute. His leadership emphasises collaboration between academia and industry, excellence in education, and a strong commitment to community development.`
-                      : `श्री संजय गुप्ता संस्थान में आपका स्वागत करते हैं। उनका नेतृत्व शिक्षा और उद्योग के बीच सहयोग, शिक्षा में उत्कृष्टता और सामुदायिक विकास के प्रति मजबूत प्रतिबद्धता पर जोर देता है।`}
+                  <p className="text-gray-700 mb-3 whitespace-pre-wrap">
+                    {data.description}
                   </p>
                 </div>
               </div>
@@ -114,8 +130,8 @@ export default function ChairpersonPage() {
               <div className="w-full md:w-1/3 flex-shrink-0">
                 <div className="w-48 h-48 md:w-56 md:h-56 bg-gray-100 rounded-2xl overflow-hidden mx-auto">
                   <Image
-                    src="/images/chairperson.jpg"
-                    alt="Shri Sanjay Gupta"
+                    src={data.image || "/images/chairperson.jpg"}
+                    alt={data.name}
                     width={224}
                     height={224}
                     className="object-cover w-full h-full"
@@ -127,7 +143,6 @@ export default function ChairpersonPage() {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }
