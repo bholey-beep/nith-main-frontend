@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronDown, Search } from 'lucide-react';
 import Aboutnith from '../slidebar/aboutnith/aboutnith';
@@ -17,6 +17,28 @@ import { toggleLanguage } from '../../redux/language_converter';
 
 function Header31() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = (id: string) => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+    }
+    setActiveDropdown(id);
+  };
+
+  const handleMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 200); // 400ms delay to allow moving mouse to the dropdown
+  };
+
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeoutRef.current) {
+        clearTimeout(dropdownTimeoutRef.current);
+      }
+    };
+  }, []);
   const language = useSelector((state: RootState) => state.language.value);
   const dispatch = useDispatch();
 
@@ -79,156 +101,90 @@ function Header31() {
         </div>
       </div>
 
-      {/* 2. HEADER - SEPARATED LAYOUT */}
-      <div className="py-2 sm:py-3 md:py-4 px-2 sm:px-4 md:px-8 relative z-20 overflow-hidden">
-        {/* Background Texture */}
-
-        {/* Ambient Glows */}
-        <div className="absolute top-1/2 left-20 w-64 h-64 bg-[#631012]/5 rounded-full blur-3xl -translate-y-1/2 pointer-events-none"></div>
-
-        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 md:gap-8 relative z-10">
-          {/* === LEFT SIDE: LOGO & PILLAR === */}
+      {/* 2. HEADER & NAVIGATION - COMBINED LAYOUT */}
+      <div className="w-full bg-[#f8f9fa] border-b border-gray-200 relative z-20">
+        <div className="max-w-[1400px] mx-auto flex flex-col xl:flex-row items-center justify-between px-2 sm:px-4 md:px-8 py-1.5 md:py-2 gap-3 md:gap-4">
+          
+          {/* === LEFT SIDE: LOGO & TITLE === */}
           <Link
             href="/"
-            className="flex flex-row items-center gap-3 sm:gap-4 md:gap-6 group"
+            className="flex flex-row items-center gap-2 sm:gap-3"
           >
             {/* LOGO */}
-            <div className="relative p-1 sm:p-2 transition-transform duration-500">
-              <div className="relative h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 lg:h-28 lg:w-28 drop-shadow-xl">
-                <img
-                  src="/l.png"
-                  alt="NITH Logo"
-                  className="object-contain h-full w-full"
+            <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 flex-shrink-0">
+              <img
+                src="/l.png"
+                alt="NITH Logo"
+                className="object-contain h-full w-full"
+              />
+            </div>
+            
+            {/* TITLE */}
+            <div className="flex flex-col justify-center text-left">
+              <h3 className="text-[clamp(10px,1.1vw,14px)] font-bold text-[#631012] leading-[1.15]">
+                राष्ट्रीय प्रौद्योगिकी संस्थान हमीरपुर
+              </h3>
+              <h3 className="text-[clamp(10px,1.1vw,14px)] font-bold text-[#631012] leading-[1.15]">
+                National Institute of Technology Hamirpur
+              </h3>
+              <p className="text-[clamp(8px,0.8vw,10px)] text-gray-600 mt-0.5">
+                {language == 'en'
+                  ? '(An Institute of National Importance)'
+                  : '(राष्ट्रीय महत्व का संस्थान)'}
+              </p>
+            </div>
+          </Link>
+
+          {/* === RIGHT SIDE: NAVIGATION BAR === */}
+          <nav className="flex flex-wrap items-center justify-center xl:justify-end gap-x-2 sm:gap-x-4 gap-y-1 mt-1 xl:mt-0">
+            {[
+              { id: 'about', label: 'About NITH', label2: 'संस्थान के बारे में' },
+              { id: 'authorities', label: 'Authorities', label2: 'प्राधिकरण' },
+              { id: 'administration', label: 'Administration', label2: 'प्रशासन' },
+              { id: 'departments', label: 'Departments', label2: 'विभाग' },
+              { id: 'academics', label: 'Academics', label2: 'शैक्षणिक' },
+              { id: 'student', label: 'Student', label2: 'छात्र' },
+              { id: 'faculty', label: 'Faculty', label2: 'संकाय' },
+              { id: 'alumni', label: 'Alumni', label2: 'पूर्व छात्र' },
+              { id: 'downloads', label: 'Downloads', label2: 'डाउनलोड' },
+            ].map((item) => (
+              <div
+                key={item.id}
+                className="text-[#333333] hover:text-[#631012] flex items-center gap-0.5 cursor-pointer transition-colors whitespace-nowrap text-[clamp(10px,1vw,12.5px)] py-1.5 group font-medium"
+                onMouseEnter={() => handleMouseEnter(item.id)}
+                onMouseLeave={handleMouseLeave}
+              >
+                {language == 'en' ? item.label : item.label2}
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform duration-300 group-hover:text-[#631012] ${activeDropdown === item.id ? 'rotate-180 text-[#631012]' : 'text-gray-500'}`}
                 />
               </div>
-            </div>
-          </Link>
-
-          {/* === RIGHT SIDE: TEXT STACK === */}
-          <Link
-            href="/"
-            className={`flex flex-col ${language == 'en' ? 'gap-0' : 'gap-2'} justify-center items-center md:items-end text-center md:text-right group px-10`}
-          >
-            <div className="flex items-center gap-2 sm:gap-3">
-              <span className="hidden lg:block w-8 sm:w-12 h-[1px] sm:h-[2px] bg-gradient-to-l from-[#631012] to-transparent"></span>
-              <h3
-                className={`text-[clamp(9px,3vw,14px)] font-bold text-[#631012] uppercase transition-all duration-300 ${language == 'en' ? 'tracking-[0.15em] sm:tracking-[0.25em]' : 'tracking-normal'}`}
-              >
-                {language == 'en'
-                  ? ' National Institute of Technology'
-                  : ' राष्ट्रीय प्रौद्योगिकी संस्थान हमीरपुर'}
-              </h3>
-            </div>
-
-            <h1
-              className={`text-[clamp(2rem,5vw,6rem)] font-black text-black tracking-tighter leading-[0.9] mt-1 sm:mt-2 drop-shadow-sm transition-all duration-500 origin-center`}
-              key={language}
-            >
-              {language == 'en' ? 'HAMIRPUR' : ' हमीरपुर'}
-            </h1>
-
-            <p className="text-[clamp(9px,1.8vw,11px)] text-gray-500 font-serif italic transition-all duration-300 sm:mt-2 flex items-center gap-2 justify-center md:justify-end">
-              {language == 'en'
-                ? ' An Institute of National Importance'
-                : 'राष्ट्रीय महत्व का संस्थान'}
-              {/* Dot color changed to Maroon */}
-              <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-[#631012] rounded-full"></span>
-            </p>
-          </Link>
-        </div>
-      </div>
-
-      {/* 3. NAVIGATION BAR - WHITE HOVER EFFECTS */}
-      <div className="w-full relative z-40 px-2 sm:px-4 md:px-8 mb-1">
-        <div className="max-w-[1400px] mx-auto bg-[#631012] text-white shadow-2xl rounded-sm relative overflow-visible">
-          <nav className="flex flex-nowrap items-center justify-between px-1 sm:px-2 no-scrollbar overflow-x-auto">
-            <div className="flex flex-wrap items-center h-full w-full justify-center gap-y-1">
-              {/* Responsive nav item: text shrinks more on small screens */}
-              {[
-                {
-                  id: 'about',
-                  label: 'About NITH',
-                  label2: 'संस्थान के बारे में',
-                },
-                {
-                  id: 'authorities',
-                  label: 'Authorities',
-                  label2: 'प्राधिकरण',
-                },
-                {
-                  id: 'administration',
-                  label: 'Administration',
-                  label2: 'प्रशासन',
-                },
-                {
-                  id: 'departments',
-                  label: 'Departments',
-                  label2: 'विभाग',
-                },
-                {
-                  id: 'academics',
-                  label: 'Academics',
-                  label2: 'शैक्षणिक',
-                },
-                {
-                  id: 'student',
-                  label: 'Student',
-                  label2: 'छात्र',
-                },
-                {
-                  id: 'faculty',
-                  label: 'Faculty',
-                  label2: 'संकाय',
-                },
-                {
-                  id: 'alumni',
-                  label: 'Alumni',
-                  label2: 'पूर्व छात्र',
-                },
-                {
-                  id: 'downloads',
-                  label: 'Downloads',
-                  label2: 'डाउनलोड',
-                },
-              ].map((item) => (
-                <div
-                  key={item.id}
-                  className="text-white  uppercase tracking-[0.05em] sm:tracking-[0.1em] px-1 sm:px-2 lg:px-4 h-8 sm:h-11 md:h-13 flex items-center gap-1 cursor-pointer hover:text-white transition-all whitespace-nowrap text-[clamp(6px,0.95vw,9px)] sm:text-[clamp(7px,1.1vw,10px)] md:text-[clamp(8px,1.3vw,11px)]"
-                  onMouseEnter={() => setActiveDropdown(item.id)}
-                  onMouseLeave={() => setActiveDropdown(null)}
-                >
-                  {language == 'en' ? item.label : item.label2}
-                  <ChevronDown
-                    size={10}
-                    className={`transition-transform duration-300 ${activeDropdown === item.id ? 'rotate-180' : ''}`}
-                  />
-                </div>
-              ))}
-            </div>
+            ))}
           </nav>
-
-          {/* Single Dropdown Menu */}
-          {activeDropdown && (
-            <div
-              className="absolute top-full left-0 right-0 bg-white text-black shadow-2xl z-[9999] overflow-auto"
-              style={{ minHeight: '300px', maxHeight: '70vh' }}
-              onMouseEnter={() => setActiveDropdown(activeDropdown)}
-              onMouseLeave={() => setActiveDropdown(null)}
-            >
-              <div className="p-4 sm:p-6 md:p-8 lg:p-10 max-w-[1400px] mx-auto">
-                {activeDropdown === 'about' && <Aboutnith />}
-                {activeDropdown === 'authorities' && <Authorities />}
-                {activeDropdown === 'administration' && <Administration />}
-                {activeDropdown === 'departments' && <Department />}
-                {activeDropdown === 'academics' && <Academic />}
-                {activeDropdown === 'student' && <Student />}
-                {activeDropdown === 'faculty' && <Faculty />}
-                {activeDropdown === 'alumni' && <Alumni />}
-                {activeDropdown === 'downloads' && <Downloads />}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Dropdown Menu */}
+        {activeDropdown && (
+          <div
+            className="absolute top-full left-0 right-0 bg-white text-black shadow-xl border-t border-gray-100 z-[9999]"
+            style={{ minHeight: '300px', maxHeight: '70vh', overflowY: 'auto' }}
+            onMouseEnter={() => handleMouseEnter(activeDropdown)}
+            onMouseLeave={handleMouseLeave}
+          >
+            <div className="p-4 sm:p-6 md:p-8 lg:p-10 max-w-[1400px] mx-auto">
+              {activeDropdown === 'about' && <Aboutnith />}
+              {activeDropdown === 'authorities' && <Authorities />}
+              {activeDropdown === 'administration' && <Administration />}
+              {activeDropdown === 'departments' && <Department />}
+              {activeDropdown === 'academics' && <Academic />}
+              {activeDropdown === 'student' && <Student />}
+              {activeDropdown === 'faculty' && <Faculty />}
+              {activeDropdown === 'alumni' && <Alumni />}
+              {activeDropdown === 'downloads' && <Downloads />}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
