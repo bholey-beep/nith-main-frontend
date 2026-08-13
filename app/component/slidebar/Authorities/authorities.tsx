@@ -1,10 +1,11 @@
-import React from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FileText, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 
-const authoritiesData = [
+const initialAuthoritiesData = [
   {
     title: 'Board of Governors (BOG)',
     title2: 'शासी मंडल (BOG)', // Hindi Title
@@ -13,7 +14,8 @@ const authoritiesData = [
       {
         title: 'Composition of BOG',
         title2: 'BOG की संरचना',
-        href: 'https://nith.ac.in/uploads/topics/17642163716028.pdf',
+        name: 'composition_of_bog',
+        href: '#',
       },
       {
         title: 'Minutes of BOG',
@@ -30,7 +32,8 @@ const authoritiesData = [
       {
         title: 'Composition of FC',
         title2: 'वित्त समिति की संरचना',
-        href: 'https://nith.ac.in/uploads/topics/17642162991410.pdf',
+        name: 'composition_of_fc',
+        href: '#',
       },
       {
         title: 'Minutes of FC',
@@ -47,7 +50,8 @@ const authoritiesData = [
       {
         title: 'Composition of BWC',
         title2: 'BWC की संरचना',
-        href: 'https://nith.ac.in/uploads/topics/16624339297916.pdf',
+        name: 'composition_of_bwc',
+        href: '#',
       },
       {
         title: 'Minutes of BWC',
@@ -77,12 +81,35 @@ const authoritiesData = [
 
 function Authorities() {
   const language = useSelector((state: RootState) => state.language.value);
+  const [dynamicLinks, setDynamicLinks] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchLinks() {
+      try {
+        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/anchor-links`;
+        const res = await fetch(url, { cache: 'no-store' });
+        
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const json = await res.json();
+          if (json.success) setDynamicLinks(json.data);
+        } else {
+          const text = await res.text();
+          console.error("API did not return JSON. URL:", url, "Status:", res.status, "Content:", text.substring(0, 100));
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    }
+    fetchLinks();
+  }, []);
+
   return (
     <section className="w-full bg-white">
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         {/* Responsive Grid: 1 col mobile, 2 col tablet, 4 col desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 md:gap-x-8 gap-y-6 sm:gap-y-8 md:gap-y-12">
-          {authoritiesData.map((section) => (
+          {initialAuthoritiesData.map((section) => (
             <div key={section.title} className="group flex flex-col">
               {/* Column Header with Futuristic Accent */}
               <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
@@ -97,12 +124,16 @@ function Authorities() {
 
               {/* Links List */}
               <ul className="space-y-2 sm:space-y-3">
-                {section.links.map((link) => {
+                {section.links.map((link: any) => {
+                  const dbLink = link.name ? dynamicLinks.find(d => d.id === link.name) : null;
+                  const activeHref = dbLink ? dbLink.link_url : link.href;
+                  
                   return (
                     <li key={link.title}>
                       <Link
-                        href={link.href}
+                        href={activeHref}
                         className="flex items-center justify-between group/link py-1.5 sm:py-2 border-b border-gray-50 hover:border-gray-200 transition-all duration-300"
+                        target={activeHref.startsWith('http') ? '_blank' : '_self'}
                       >
                         <div className="flex items-center gap-2 sm:gap-3">
                           <ChevronRight

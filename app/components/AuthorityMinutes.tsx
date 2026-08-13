@@ -18,10 +18,18 @@ export default function AuthorityMinutes({ title, apiBase }: { title: string, ap
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/${apiBase}/minutes`);
-        const json = await res.json();
-        if (Array.isArray(json)) {
-          setData(json);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/${apiBase}/minutes`, { cache: 'no-store' });
+        
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const json = await res.json();
+          if (Array.isArray(json)) {
+            setData(json);
+          } else if (json.data) {
+            setData(json.data);
+          }
+        } else {
+          console.error("API did not return JSON for minutes.", res.status);
         }
       } catch (err) {
         console.error('Failed to fetch minutes', err);
