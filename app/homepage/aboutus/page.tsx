@@ -88,14 +88,6 @@ function Aboutus() {
             />
           </motion.h2>
 
-          {/* LANGUAGE TOGGLE */}
-          <button
-            onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-            className="px-4 py-2 bg-[#631012] text-white rounded-lg text-sm"
-          >
-            {isEn ? 'हिंदी' : 'English'}
-          </button>
-
         </div>
 
         {/* CONTENT */}

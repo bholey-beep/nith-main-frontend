@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import {
   Megaphone,
@@ -104,30 +105,7 @@ export default function Admissions() {
                 : data.heading_hi || 'प्रवेश'}
             </h2>
 
-            {/* 🔥 LANGUAGE TOGGLE (ONLY ADDITION) */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setLang('en')}
-                className={`px-3 py-1 text-sm rounded border transition ${
-                  lang === 'en'
-                    ? 'bg-[#631012] text-white'
-                    : 'bg-gray-100'
-                }`}
-              >
-                EN
-              </button>
 
-              <button
-                onClick={() => setLang('hi')}
-                className={`px-3 py-1 text-sm rounded border transition ${
-                  lang === 'hi'
-                    ? 'bg-[#631012] text-white'
-                    : 'bg-gray-100'
-                }`}
-              >
-                HI
-              </button>
-            </div>
 
           </div>
 
@@ -160,7 +138,7 @@ export default function Admissions() {
 
                 <div className="flex-shrink-0 pl-4">
                   <button
-                    onClick={() => setSelectedAdmission(item)}
+                    
                     className="w-12 h-12 rounded-full flex items-center justify-center text-gray-300 border group-hover:bg-[#631012] group-hover:text-white transition-all duration-300"
                   >
                     <ArrowRight size={20} />

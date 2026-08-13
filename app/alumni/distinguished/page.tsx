@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
+
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 
@@ -444,7 +444,7 @@ export default function DistinguishedAlumni() {
 
   return (
     <>
-      <Header31 />
+      
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumb Navigation */}
         <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
@@ -788,7 +788,7 @@ export default function DistinguishedAlumni() {
           </div>
         </section>
       </div>
-      <Footer />
+      
     </>
   );
 }

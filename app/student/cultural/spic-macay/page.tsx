@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
+
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
@@ -197,7 +197,7 @@ export default function SpicMacayPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header31 />
+      
 
       {/* Breadcrumbs Navigation */}
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
@@ -419,7 +419,7 @@ export default function SpicMacayPage() {
         )}
       </AnimatePresence>
 
-      <Footer />
+      
     </div>
   );
 }

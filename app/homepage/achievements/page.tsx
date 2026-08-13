@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
@@ -220,34 +221,6 @@ function Achieve() {
                 : 'उपलब्धियाँ'}
             </h2>
 
-            {/* LANGUAGE TOGGLE */}
-            <div className="flex items-center bg-[#F3F3F3] rounded-full p-1 border border-[#631012]/20">
-              <button
-                onClick={() =>
-                  setLanguage('en')
-                }
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                  language === 'en'
-                    ? 'bg-[#631012] text-white'
-                    : 'text-[#631012]'
-                }`}
-              >
-                English
-              </button>
-
-              <button
-                onClick={() =>
-                  setLanguage('hi')
-                }
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                  language === 'hi'
-                    ? 'bg-[#631012] text-white'
-                    : 'text-[#631012]'
-                }`}
-              >
-                हिन्दी
-              </button>
-            </div>
           </div>
 
           <div className="flex justify-center items-center h-64">
@@ -323,34 +296,6 @@ function Achieve() {
               : 'उपलब्धियाँ'}
           </h2>
 
-          {/* LANGUAGE TOGGLE */}
-          <div className="flex items-center bg-[#F3F3F3] rounded-full p-1 border border-[#631012]/20 w-fit">
-            <button
-              onClick={() =>
-                setLanguage('en')
-              }
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                language === 'en'
-                  ? 'bg-[#631012] text-white shadow'
-                  : 'text-[#631012]'
-              }`}
-            >
-              English
-            </button>
-
-            <button
-              onClick={() =>
-                setLanguage('hi')
-              }
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                language === 'hi'
-                  ? 'bg-[#631012] text-white shadow'
-                  : 'text-[#631012]'
-              }`}
-            >
-              हिन्दी
-            </button>
-          </div>
         </div>
 
         {/* CAROUSEL */}

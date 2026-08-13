@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
+
 import { Calendar, Download, FileText, ChevronRight } from 'lucide-react';
 
 interface DeputationRule {
@@ -80,7 +80,7 @@ export default function DeputationRules() {
 
   return (
     <>
-      <Header31 />
+      
       <div className="min-h-screen bg-gray-50 pb-20">
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-20 md:py-28 relative overflow-hidden">
@@ -184,7 +184,7 @@ export default function DeputationRules() {
           </div>
         </section>
       </div>
-      <Footer />
+      
     </>
   );
 }

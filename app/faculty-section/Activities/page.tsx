@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
+
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import { useEffect, useState } from 'react';
@@ -78,7 +78,7 @@ export default function Page() {
 
   return (
     <div className="bg-white min-h-screen">
-      <Header31 />
+      
       <div className="bg-white">
         <div className="bg-white relative flex flex-col pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
           <div className="text-center mb-12">
@@ -129,7 +129,7 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <Footer />
+      
     </div>
   );
 }

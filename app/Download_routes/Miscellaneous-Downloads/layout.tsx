@@ -6,8 +6,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer'; 
+
+ 
 
 interface PageMeta {
   id?: number;
@@ -67,7 +67,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header31 />
+      
 
       {/* Breadcrumb Section */}
       <div className="bg-white border-b border-gray-200">
@@ -144,7 +144,7 @@ useEffect(() => {
         </div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 }

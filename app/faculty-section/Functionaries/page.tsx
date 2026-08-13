@@ -1,7 +1,7 @@
 'use client';
 
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
+
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
@@ -268,7 +268,7 @@ export default function FacultyRolesPage() {
 
   return (
     <>
-      <Header31 />
+      
 
       <main className="min-h-screen bg-[#f4f2f1] px-8 py-10 text-[13px] text-gray-800">
         <header className="mx-auto mb-6 max-w-6xl text-center">
@@ -345,7 +345,7 @@ export default function FacultyRolesPage() {
         })}
       </main>
 
-      <Footer />
+      
     </>
   );
 }

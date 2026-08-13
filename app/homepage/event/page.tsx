@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import {
   Megaphone,
@@ -226,13 +227,6 @@ export default function Events() {
               </h2>
             </div>
 
-            {/* Language Toggle */}
-            <button
-              onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-              className="px-4 py-2 bg-[#631012] text-white rounded-lg text-sm font-medium hover:bg-[#7a1214] transition-colors"
-            >
-              {lang === 'en' ? 'हिंदी' : 'English'}
-            </button>
           </div>
 
           {/* Single Column List (Flex-Col) */}
@@ -241,7 +235,8 @@ export default function Events() {
               const dateInfo = getFormattedDate(item.date);
 
               return (
-                <div
+                <Link
+                  href={`/homepage/event/${item.id}`}
                   key={item.id}
                   className="group relative flex items-center justify-between py-6 px-8 border-b border-gray-100 hover:bg-[#631012]/5 transition-all duration-300 cursor-pointer"
                 >
@@ -281,13 +276,13 @@ export default function Events() {
                   {/* Right Side: Arrow Action - Increased Size */}
                   <div className="flex-shrink-0 pl-4">
                     <button
-                      onClick={() => setSelectedEvent(item)}
+                      
                       className="w-12 h-12 rounded-full flex items-center justify-center text-gray-300 border border-transparent group-hover:bg-[#631012] group-hover:text-white group-hover:border-[#631012] transition-all duration-300 transform group-hover:translate-x-2 shadow-sm hover:scale-110"
                     >
                       <ArrowRight size={20} />
                     </button>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

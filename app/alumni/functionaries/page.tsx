@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
+
 import { Users, Phone, Mail, Home, ChevronRight } from 'lucide-react';
 
 interface Row {
@@ -105,7 +105,7 @@ export default function AlumniFunctionaries() {
 
   return (
     <>
-      <Header31 />
+      
       <div className="min-h-screen bg-gray-50 pb-20">
         {/* Breadcrumb */}
         <div className="bg-white/80 backdrop-blur-md sticky top-0 z-30 py-4 px-6 md:px-12 border-b border-gray-200">
@@ -207,7 +207,7 @@ export default function AlumniFunctionaries() {
             )}
         </section>
       </div>
-      <Footer />
+      
     </>
   );
 }

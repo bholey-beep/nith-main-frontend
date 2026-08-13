@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
+
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 
@@ -95,18 +95,18 @@ export default function Page() {
   if (loading) {
     return (
       <>
-        <Header31 />
+        
         <div className="min-h-screen bg-white flex justify-center items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#800000]"></div>
         </div>
-        <Footer />
+        
       </>
     );
   }
 
   return (
     <div className="min-h-screen bg-white">
-      <Header31 />
+      
 
       {/* Breadcrumb Navigation */}
       <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
@@ -188,7 +188,7 @@ export default function Page() {
         </motion.section>
       </main>
 
-      <Footer />
+      
     </div>
   );
 }

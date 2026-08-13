@@ -143,17 +143,7 @@ function Placement() {
       <div className="absolute inset-0 bg-[url('/nith.jpg')] bg-cover bg-center bg-fixed opacity-40"></div>
       <div className="absolute inset-0 bg-black/60"></div>
 
-      {/* Language Toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <button
-          onClick={() =>
-            setLang(lang === 'en' ? 'hi' : 'en')
-          }
-          className="px-4 py-2 bg-white text-black rounded-lg text-sm font-medium"
-        >
-          {lang === 'en' ? 'हिंदी' : 'English'}
-        </button>
-      </div>
+
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

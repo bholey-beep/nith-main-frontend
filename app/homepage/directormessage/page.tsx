@@ -299,27 +299,7 @@ export default function Director() {
 
       <div className="max-w-7xl mx-auto relative z-10">
 
-        {/* LANGUAGE TOGGLE */}
 
-        <div className="flex justify-end mb-8">
-
-          <button
-            onClick={() =>
-              dispatch(
-                toggleLanguage()
-              )
-            }
-            className="bg-[#631012] hover:bg-[#7a1214] text-white px-5 py-2 rounded-lg transition-all duration-300"
-          >
-
-            {language ===
-            'en'
-              ? 'हिंदी'
-              : 'English'}
-
-          </button>
-
-        </div>
 
         {/* HEADER */}
 

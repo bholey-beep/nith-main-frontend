@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
+
 import { FileText, Download, FileType } from 'lucide-react';
 
 interface Rule {
@@ -61,7 +61,7 @@ export default function CPDARules() {
 
   return (
     <>
-      <Header31 />
+      
       <div className="min-h-screen bg-gray-50 pb-20">
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-16 md:py-24 text-center shadow-inner">
@@ -142,7 +142,7 @@ export default function CPDARules() {
           </div>
         </section>
       </div>
-      <Footer />
+      
     </>
   );
 }

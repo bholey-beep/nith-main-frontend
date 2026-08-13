@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
-import Header31 from '@/app/components/header3';
-import Footer from '@/app/components/footer';
+
 
 type AwardFrequency = string;
 
@@ -120,18 +119,18 @@ export default function AwardsInitiatives() {
   if (loading) {
     return (
       <>
-        <Header31 />
+        
         <div className="min-h-screen bg-gray-50 flex justify-center items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#631012]"></div>
         </div>
-        <Footer />
+        
       </>
     );
   }
 
   return (
     <>
-      <Header31 />
+      
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumbs */}
         <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
@@ -617,7 +616,7 @@ export default function AwardsInitiatives() {
           </div>
         </section>
       </div>
-      <Footer />
+      
     </>
   );
 }
