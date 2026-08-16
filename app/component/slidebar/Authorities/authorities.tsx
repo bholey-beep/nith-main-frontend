@@ -86,19 +86,16 @@ function Authorities() {
   useEffect(() => {
     async function fetchLinks() {
       try {
-        const url = `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/anchor-links`;
+        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/anchor-links`;
         const res = await fetch(url, { cache: 'no-store' });
         
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
           const json = await res.json();
           if (json.success) setDynamicLinks(json.data);
-        } else {
-          const text = await res.text();
-          console.error("API did not return JSON. URL:", url, "Status:", res.status, "Content:", text.substring(0, 100));
         }
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error("Fetch error in Authorities slidebar:", err);
       }
     }
     fetchLinks();
@@ -118,15 +115,16 @@ function Authorities() {
                 </span>
                 <h3 className="text-[clamp(10px,2vw,14px)] font-bold uppercase tracking-wider text-gray-800 border-l-2 border-[#800000] pl-2 sm:pl-3">
                   {language == 'en' ? section.title : section.title2}
-                  {/* Shows "Board of Governors" without the (BOG) to keep it clean */}
                 </h3>
               </div>
 
               {/* Links List */}
               <ul className="space-y-2 sm:space-y-3">
                 {section.links.map((link: any) => {
-                  const dbLink = link.name ? dynamicLinks.find(d => d.id === link.name) : null;
-                  const activeHref = dbLink ? dbLink.link_url : link.href;
+                  const dbLink = link.name
+                    ? dynamicLinks.find((d) => d.id === link.name || (link.name === 'composition_of_bog' && d.id === 'bog') || (link.name === 'composition_of_fc' && d.id === 'fc') || (link.name === 'composition_of_bwc' && d.id === 'bwc'))
+                    : null;
+                  const activeHref = dbLink && dbLink.link_url && dbLink.link_url !== '#' ? dbLink.link_url : link.href;
                   
                   return (
                     <li key={link.title}>
