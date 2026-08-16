@@ -356,7 +356,7 @@ export default function DistinguishedAlumni() {
         
         // 1. Fetch Header Details
         try {
-          const hRes = await fetch('http://localhost:4000/api/alumni-distinguished');
+          const hRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-distinguished`);
           const hData = await hRes.json();
           if (hData && hData.title_en) {
             setHeading(hData);
@@ -367,7 +367,7 @@ export default function DistinguishedAlumni() {
 
         // 2. Fetch Alumni List Records
         try {
-          const lRes = await fetch('http://localhost:4000/api/alumni-distinguished/list');
+          const lRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-distinguished/list`);
           const lData = await lRes.json();
           if (Array.isArray(lData) && lData.length > 0) {
             setAlumni(lData);

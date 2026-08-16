@@ -13,7 +13,7 @@ export default function AchievementDetail({ params }: { params: { id: string } }
   const language = useSelector((state: RootState) => state.language.value);
 
   useEffect(() => {
-    fetch(`http://localhost:4000/v1/homepage/achievements/${params.id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/achievements/${params.id}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success && json.data) {

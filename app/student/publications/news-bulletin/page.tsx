@@ -11,7 +11,7 @@ import { RootState } from '@/app/store';
 
 // ─── Move API_URL outside the component so it is a stable reference
 // and does not re-trigger useEffect on every render ───────────────────────────
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 const getAttachmentUrl = (url: string) => {
   if (!url) return '';

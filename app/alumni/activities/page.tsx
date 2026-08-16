@@ -73,11 +73,11 @@ export default function Activities() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const hRes = await fetch('http://localhost:4000/api/alumni-activities');
+        const hRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-activities`);
         const hData = await hRes.json();
         setHeading(hData);
 
-        const lRes = await fetch('http://localhost:4000/api/alumni-activities/list');
+        const lRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-activities/list`);
         const lData = await lRes.json();
         
         let merged = Array.isArray(lData) ? [...lData] : [];

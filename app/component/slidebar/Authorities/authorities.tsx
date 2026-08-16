@@ -86,7 +86,7 @@ function Authorities() {
   useEffect(() => {
     async function fetchLinks() {
       try {
-        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/anchor-links`;
+        const url = `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/anchor-links`;
         const res = await fetch(url, { cache: 'no-store' });
         
         const contentType = res.headers.get("content-type");

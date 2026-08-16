@@ -26,7 +26,7 @@ export default function WorkshopRulesTable() {
     const fetchRules = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/faculty-workshop/list`, { cache: 'no-store' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-workshop/list`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setRules(Array.isArray(data) ? data : []);

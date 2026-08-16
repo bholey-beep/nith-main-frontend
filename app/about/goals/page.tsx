@@ -51,7 +51,7 @@ export default function GoalsPage() {
     async function fetchGoalsAndRoadmap() {
       try {
         setLoading(true);
-        const resGoals = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/goals/goals`, { cache: 'no-store' });
+        const resGoals = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/goals/goals`, { cache: 'no-store' });
         const jsonGoals = await resGoals.json();
         if (jsonGoals.success) {
           const iconMap: Record<string, any> = { Target, Lightbulb, Users, BookOpen, Globe, TrendingUp, Leaf, GraduationCap };
@@ -63,7 +63,7 @@ export default function GoalsPage() {
           setGoals(mappedG);
         }
 
-        const resRoadmap = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/goals/roadmap`, { cache: 'no-store' });
+        const resRoadmap = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/goals/roadmap`, { cache: 'no-store' });
         const jsonRoadmap = await resRoadmap.json();
         if (jsonRoadmap.success) {
           const mappedR = jsonRoadmap.data.map((item: any) => ({

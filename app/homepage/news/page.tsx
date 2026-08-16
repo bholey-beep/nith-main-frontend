@@ -80,7 +80,7 @@ export default function Newss() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:4000/v1/homepage/news');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/news`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch newss: ${response.status}`);

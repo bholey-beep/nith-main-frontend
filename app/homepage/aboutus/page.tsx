@@ -78,7 +78,7 @@ function Aboutus() {
         setLoading(true);
 
         const res = await fetch(
-          'http://localhost:4000/v1/homepage/about'
+          `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/about`
         );
 
         const json = await res.json();

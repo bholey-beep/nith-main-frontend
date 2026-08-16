@@ -35,7 +35,7 @@ export default function AboutCityPage() {
     async function fetchCity() {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/about-city`, { cache: 'no-store' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/about-city`, { cache: 'no-store' });
         const json = await res.json();
         if (json.success) {
           const iconMap: Record<string, any> = { MapPin, Mountain, Route };

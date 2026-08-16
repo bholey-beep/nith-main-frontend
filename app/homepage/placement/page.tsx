@@ -124,7 +124,7 @@ function Placement() {
     async function loadPlacements() {
       try {
         const res = await fetch(
-          'http://localhost:4000/v1/homepage/placements'
+          `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/placements`
         );
 
         const json = await res.json();

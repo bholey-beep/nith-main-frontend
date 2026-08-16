@@ -3,7 +3,7 @@
 // Reusable function to fetch about-nith data by ID
 export async function getAboutNithData(id: number) {
   try {
-    const response = await fetch(`http://localhost:4000/v1/about-nith/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/about-nith/${id}`, {
       cache: 'no-store', // Always fresh data
       next: { revalidate: 3600 }, // Revalidate every hour
     });

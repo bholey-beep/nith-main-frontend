@@ -105,7 +105,7 @@ export default function AlumniAssist() {
   useEffect(() => {
     const fetchHeading = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/alumni-assist');
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-assist`);
         const data = await res.json();
         if (data && data.title_en) {
           setHeading(data);
@@ -117,7 +117,7 @@ export default function AlumniAssist() {
 
     const fetchProcedures = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/alumni-assist/procedures');
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-assist/procedures`);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setProcedures(data);
@@ -129,7 +129,7 @@ export default function AlumniAssist() {
 
     const fetchFees = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/alumni-assist/fees');
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-assist/fees`);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setFees(data);

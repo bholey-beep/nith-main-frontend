@@ -48,11 +48,11 @@ export default function ForwardingRules() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const hRes = await fetch('http://localhost:4000/api/faculty-forwarding', { cache: 'no-store' });
+        const hRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-forwarding`, { cache: 'no-store' });
         const hData = await hRes.json();
         setHeading(hData);
 
-        const lRes = await fetch('http://localhost:4000/api/faculty-forwarding/list', { cache: 'no-store' });
+        const lRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-forwarding/list`, { cache: 'no-store' });
         const lData = await lRes.json();
         
         let merged = Array.isArray(lData) ? [...lData] : [];

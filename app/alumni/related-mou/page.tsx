@@ -32,11 +32,11 @@ export default function AlumniRelatedMou() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const hRes = await fetch('http://localhost:4000/api/alumni-mou');
+        const hRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-mou`);
         const hData = await hRes.json();
         setHeading(hData);
 
-        const lRes = await fetch('http://localhost:4000/api/alumni-mou/list');
+        const lRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-mou/list`);
         const lData = await lRes.json();
         
         setMous(Array.isArray(lData) ? lData : []);

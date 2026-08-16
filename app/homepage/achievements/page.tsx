@@ -100,7 +100,7 @@ function Achieve() {
           setError(null);
 
           const res = await fetch(
-            'http://localhost:4000/v1/homepage/achievements'
+            `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/achievements`
           );
 
           const json = await res.json();

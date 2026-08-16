@@ -83,7 +83,7 @@ export default function AwardsInitiatives() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
         const res = await fetch(`${apiUrl}/api/alumni-awards`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();

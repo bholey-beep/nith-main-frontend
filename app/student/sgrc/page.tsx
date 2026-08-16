@@ -231,7 +231,7 @@ export default function Page() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
         
         // Fetch headings
         const headRes = await fetch(`${apiUrl}/api/student-sgrc`, { cache: 'no-store' });

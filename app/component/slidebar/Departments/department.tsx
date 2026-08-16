@@ -15,7 +15,7 @@ interface DepartmentRecord {
     is_active: boolean;
 }
 
-const API_BASE = 'http://localhost:4000/v1/departments';
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/departments`;
 
 const getDepartmentHref = (code: string) => {
     const normalized = code.toLowerCase();

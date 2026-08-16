@@ -90,7 +90,7 @@ export default function Page() {
   const [heading, setHeading] = useState<MagazineHeading>(DEFAULT_HEADING);
   const [archive, setArchive] = useState<ArchiveItem[]>(DEFAULT_ARCHIVE);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
   useEffect(() => {
     const loadData = async () => {

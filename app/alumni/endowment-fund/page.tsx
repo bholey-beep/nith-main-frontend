@@ -153,7 +153,7 @@ export default function EndowmentFundGeneration() {
   useEffect(() => {
     const fetchHeading = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/alumni-endowment`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-endowment`);
         if (res.ok) {
           const data = await res.json();
           if (data && Object.keys(data).length > 0) {
@@ -174,7 +174,7 @@ export default function EndowmentFundGeneration() {
 
     const fetchInitiatives = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/alumni-endowment/initiatives`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-endowment/initiatives`);
         if (res.ok) {
           const data = await res.json();
           setInitiatives(data);

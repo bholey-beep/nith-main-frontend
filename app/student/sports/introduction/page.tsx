@@ -130,7 +130,7 @@ export default function Page() {
   const [events, setEvents] = useState<Event[]>(DEFAULT_EVENTS);
   const [achievements, setAchievements] = useState<Achievement[]>(DEFAULT_ACHIEVEMENTS);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
   useEffect(() => {
     const loadDynamicData = async () => {

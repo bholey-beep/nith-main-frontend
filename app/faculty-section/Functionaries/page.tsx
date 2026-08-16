@@ -212,7 +212,7 @@ export default function FacultyRolesPage() {
   useEffect(() => {
     const fetchHeading = async () => {
       try {
-        const data = await fetch('http://localhost:4000/api/faculty-functionaries', { cache: 'no-store' });
+        const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-functionaries`, { cache: 'no-store' });
         const res = await data.json();
         setHeading(res);
       } catch (err) {
@@ -222,7 +222,7 @@ export default function FacultyRolesPage() {
 
     const fetchRoles = async () => {
       try {
-        const data = await fetch('http://localhost:4000/api/faculty-functionaries/list', { cache: 'no-store' });
+        const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-functionaries/list`, { cache: 'no-store' });
         const res = await data.json();
         if (Array.isArray(res)) {
           setDbRoles(res);

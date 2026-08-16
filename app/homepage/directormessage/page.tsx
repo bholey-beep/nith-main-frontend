@@ -38,7 +38,7 @@ const fallbackDirectorData: DirectorData = {
   message_hi: "एनआईटी हमीरपुर में, हमारा प्रयास वैज्ञानिक ज्ञान को आगे बढ़ाने, अग्रणी नवाचार को बढ़ावा देने और हमारे समाज की जटिल तकनीकी चुनौतियों का समाधान करने के लिए जिम्मेदार नेताओं को सशक्त बनाने पर आधारित है।"
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 export default function Director() {
   const language = useSelector((state: RootState) => state.language.value);

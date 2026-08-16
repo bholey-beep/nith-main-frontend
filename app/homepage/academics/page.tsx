@@ -80,7 +80,7 @@ export default function Academics() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:4000/v1/homepage/academic');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/academic`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch academics: ${response.status}`);

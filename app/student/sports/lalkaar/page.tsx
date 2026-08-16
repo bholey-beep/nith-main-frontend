@@ -121,7 +121,7 @@ export default function Page() {
   const [heading, setHeading] = useState<LalkaarHeading>(DEFAULT_HEADING);
   const [sections, setSections] = useState<LalkaarSection[]>(DEFAULT_SECTIONS);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
   useEffect(() => {
     const loadData = async () => {

@@ -121,7 +121,7 @@ export default function SpicMacayPage() {
   // Lightbox overlay state
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
   const getImageUrl = (url: string) => {
     if (!url) return '';

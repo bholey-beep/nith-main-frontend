@@ -37,7 +37,7 @@ const DEFAULT_HEADING: HostelHeading = {
   sub_title_hn: 'मुख्य वार्डन और वार्डन / सहायक वार्डन संपर्क विवरण'
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 export default function Page() {
   const language = useSelector((state: RootState) => state.language.value);

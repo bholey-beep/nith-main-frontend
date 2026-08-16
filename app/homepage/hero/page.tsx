@@ -13,7 +13,7 @@ type Hotlink = {
   links: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 async function getHeroImages(): Promise<HeroImage[]> {
   const res = await fetch(`${API_BASE}/hero/hero`, { cache: 'no-store' });

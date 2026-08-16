@@ -114,19 +114,19 @@ export function SectionPreview({ title, endpoint, dataKey, icon, isAchievement, 
 }
 
 export function AcademicsPreview() {
-  return <SectionPreview title="Academics" endpoint="http://localhost:4000/v1/homepage/academic" dataKey="academics" icon={<BookOpen size={24} />} href="/homepage/academics" />;
+  return <SectionPreview title="Academics" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/academic`} dataKey="academics" icon={<BookOpen size={24} />} href="/homepage/academics" />;
 }
 
 export function AdmissionsPreview() {
-  return <SectionPreview title="Admissions" endpoint="http://localhost:4000/v1/homepage/admission" dataKey="admissions" icon={<GraduationCap size={24} />} href="/homepage/admissions" />;
+  return <SectionPreview title="Admissions" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/admission`} dataKey="admissions" icon={<GraduationCap size={24} />} href="/homepage/admissions" />;
 }
 
 export function NewsPreview() {
-  return <SectionPreview title="News & Updates" endpoint="http://localhost:4000/v1/homepage/news" dataKey="newss" icon={<Calendar size={24} />} href="/homepage/news" />;
+  return <SectionPreview title="News & Updates" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/news`} dataKey="newss" icon={<Calendar size={24} />} href="/homepage/news" />;
 }
 
 export function EventsPreview() {
-  return <SectionPreview title="Events" endpoint="http://localhost:4000/v1/homepage/event" dataKey="events" icon={<Calendar size={24} />} href="/homepage/event" />;
+  return <SectionPreview title="Events" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/event`} dataKey="events" icon={<Calendar size={24} />} href="/homepage/event" />;
 }
 
 export function AchievementsPreview() {
@@ -163,7 +163,7 @@ export function AchievementsPreview() {
   useEffect(() => {
     async function fetchAchievements() {
       try {
-        const res = await fetch('http://localhost:4000/v1/homepage/achievements');
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/achievements`);
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setItems(json.data.slice(0, 4));

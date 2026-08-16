@@ -59,7 +59,7 @@ export default function HistoryPage() {
     async function fetchHistory() {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/history`, { cache: 'no-store' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/history`, { cache: 'no-store' });
         const json = await res.json();
         if (json.success) {
           const mapped = json.data.map((item: any) => ({

@@ -57,7 +57,7 @@ export default function NimbusPage() {
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
   useEffect(() => {
     async function fetchData() {

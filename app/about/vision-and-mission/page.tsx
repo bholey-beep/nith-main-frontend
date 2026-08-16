@@ -69,7 +69,7 @@ export default function VisionMissionPage() {
     async function fetchMissions() {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/vision-mission`, { cache: 'no-store' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/vision-mission`, { cache: 'no-store' });
         const json = await res.json();
         if (json.success) {
           const iconMap: Record<string, any> = { Lightbulb, Beaker, Users, Heart, Globe };

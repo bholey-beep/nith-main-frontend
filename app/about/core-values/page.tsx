@@ -76,7 +76,7 @@ export default function CoreValuesPage() {
     async function fetchCoreValues() {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/core-values`, { cache: 'no-store' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/core-values`, { cache: 'no-store' });
         const json = await res.json();
         if (json.success) {
           const iconMap: Record<string, any> = { ShieldCheck, Trophy, Users, ClipboardCheck, Globe, Heart };

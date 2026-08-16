@@ -120,7 +120,7 @@ export default function Page() {
   const [objectives, setObjectives] = useState<NssObjective[]>(DEFAULT_OBJECTIVES);
   const [activities, setActivities] = useState<NssActivity[]>(DEFAULT_ACTIVITIES);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
   useEffect(() => {
     const loadData = async () => {

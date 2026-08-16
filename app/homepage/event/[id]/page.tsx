@@ -13,7 +13,7 @@ export default function EventDetail({ params }: { params: { id: string } }) {
   const language = useSelector((state: RootState) => state.language.value);
 
   useEffect(() => {
-    fetch(`http://localhost:4000/v1/homepage/event/${params.id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/event/${params.id}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success && json.data) {

@@ -125,7 +125,7 @@ export default function Page() {
   const [benefits, setBenefits] = useState<YogaBenefit[]>(DEFAULT_BENEFITS);
   const [instructors, setInstructors] = useState<YogaInstructor[]>(DEFAULT_INSTRUCTORS);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
   useEffect(() => {
     const loadData = async () => {

@@ -19,7 +19,7 @@ export type Homepage = {
 export async function getAboutNithData(id: number): Promise<AboutNithData> {
   try {
     const response = await fetch(
-      `http://localhost:4000/v1/about-nith/${id}`,
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/about-nith/${id}`,
       {
         next: { revalidate: 3600 }, // cache for 1 hour (remove if you want always fresh)
       }
@@ -41,7 +41,7 @@ export async function getAboutNithData(id: number): Promise<AboutNithData> {
 }
 
 export async function getHomepageData(): Promise<Homepage> {
-  const response = await fetch('http://localhost:4000/v1/homepage/', {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/`, {
     next: { revalidate: 3600 },
   });
 

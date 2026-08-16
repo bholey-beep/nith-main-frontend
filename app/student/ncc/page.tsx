@@ -122,7 +122,7 @@ export default function Page() {
   const [camps, setCamps] = useState<NccCamp[]>(DEFAULT_CAMPS);
   const [community, setCommunity] = useState<NccCommunity[]>(DEFAULT_COMMUNITY);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
   useEffect(() => {
     const loadData = async () => {

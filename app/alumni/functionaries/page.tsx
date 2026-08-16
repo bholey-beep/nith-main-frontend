@@ -72,11 +72,11 @@ export default function AlumniFunctionaries() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const hRes = await fetch('http://localhost:4000/api/alumni-functionaries');
+        const hRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-functionaries`);
         const hData = await hRes.json();
         setHeading(hData);
 
-        const lRes = await fetch('http://localhost:4000/api/alumni-functionaries/list');
+        const lRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/alumni-functionaries/list`);
         const lData = await lRes.json();
         
         if (Array.isArray(lData) && lData.length > 0) {
