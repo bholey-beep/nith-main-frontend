@@ -65,7 +65,8 @@ export default function Hero() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes marquee {
           0% { transform: translateX(100vw); }
           100% { transform: translateX(-100%); }
@@ -79,7 +80,7 @@ export default function Hero() {
         }
       `}} />
 
-      <section className="relative w-full h-[83vh] overflow-hidden">
+      <section className="relative w-full h-[30vh] md:h-[83vh] overflow-hidden">
 
         {/* BACKGROUND IMAGE */}
         {currentImage ? (
@@ -92,8 +93,8 @@ export default function Hero() {
           <div className="absolute inset-0 bg-[#631012]" />
         )}
 
-        {/* HOTLINKS CAROUSEL SECTION */}
-        <section className="absolute bottom-0 w-full min-h-[20px] bg-white flex items-center overflow-hidden border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        
+        <section className="absolute bottom-0  w-full min-h-[20px] bg-white flex items-center overflow-hidden  border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
           <div className="w-full flex overflow-hidden">
             <div className="animate-marquee flex flex-row flex-nowrap items-center w-max">
               {hotlinks.length > 0 ? (
