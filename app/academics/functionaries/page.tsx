@@ -1,4 +1,4 @@
-import { FunctionariesSectionPage } from '../../../components/SectionBlocks';
+import { FunctionariesSectionPage } from '../../components/SectionBlocks';
 
 export default function Page() {
   return (

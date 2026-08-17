@@ -1,4 +1,4 @@
-import { ActivitiesSectionPage } from '../../../components/SectionBlocks';
+import { ActivitiesSectionPage } from '../../components/SectionBlocks';
 
 export default function Page() {
   return (
