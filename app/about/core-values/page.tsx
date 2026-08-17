@@ -1,280 +1,237 @@
 'use client';
-import React from 'react';
-import { motion } from 'framer-motion';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-
-import { useEffect, useState } from 'react';
-
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-
 import {
+  ChevronRight,
   ShieldCheck,
   Trophy,
-  Users,
-  ClipboardCheck,
   Globe,
+  Users,
   Heart,
+  ClipboardCheck,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 
-const fadeUp = {
-  hidden: {
-    opacity: 0,
-    y: 30,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-  },
-};
-
-const fadeInScale = {
-  hidden: {
-    opacity: 0,
-    scale: 0.9,
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-  },
-};
-
-const fadeInLeft = {
-  hidden: {
-    opacity: 0,
-    x: -30,
-  },
-  visible: {
-    opacity: 1,
-    x: 0,
-  },
-};
-
-const fadeInRight = {
-  hidden: {
-    opacity: 0,
-    x: 30,
-  },
-  visible: {
-    opacity: 1,
-    x: 0,
-  },
-};
-
 interface CoreValue {
-  icon: React.ComponentType<{ className?: string }>;
+  id: number;
+  icon: string;
   title: string;
   description: string;
 }
 
+interface PageData {
+  hero_heading: string;
+  hero_description: string;
+  pillars_heading: string;
+  pillars_subtitle: string;
+}
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  ShieldCheck,
+  Trophy,
+  Globe,
+  Users,
+  Heart,
+  ClipboardCheck,
+};
+
+const FALLBACK_PAGE: PageData = {
+  hero_heading: 'Core Values of NIT Hamirpur',
+  hero_description: 'At National Institute of Technology Hamirpur, our core values represent the foundational principles that guide our academic endeavours, student development, research innovation, and societal commitment.',
+  pillars_heading: 'The Principles That Guide Us',
+  pillars_subtitle: 'Building a legacy of integrity, scientific curiosity, and holistic growth.',
+};
+
+const FALLBACK_VALUES = [
+  {
+    id: 1,
+    icon: 'ShieldCheck',
+    title_en: 'Integrity & Ethics',
+    title_hi: 'सत्यनिष्ठा और नैतिकता',
+    description_en: 'Upholding absolute honesty, moral responsibility, academic transparency, and uncompromising ethical conduct in all research and governance.',
+    description_hi: 'सभी अनुसंधान और शासन में पूर्ण ईमानदारी, नैतिक जिम्मेदारी, शैक्षणिक पारदर्शिता और नैतिक आचरण को बनाए रखना।'
+  },
+  {
+    id: 2,
+    icon: 'Trophy',
+    title_en: 'Academic & Research Excellence',
+    title_hi: 'शैक्षणिक और अनुसंधान उत्कृष्टता',
+    description_en: 'Striving for global benchmarks in engineering, architecture, sciences, and humanities through rigorous pedagogy and high-impact scholarship.',
+    description_hi: 'सख्त शिक्षण और उच्च-प्रभाव छात्रवृत्ति के माध्यम से इंजीनियरिंग, वास्तुकला, विज्ञान और मानविकी में वैश्विक बेंचमार्क हासिल करना।'
+  },
+  {
+    id: 3,
+    icon: 'Globe',
+    title_en: 'Innovation & Sustainability',
+    title_hi: 'नवाचार और स्थिरता',
+    description_en: 'Fostering inventive problem-solving focused on ecological preservation, renewable energy, circular economy, and socio-economic progress.',
+    description_hi: 'पारिस्थितिक संरक्षण, नवीकरणीय ऊर्जा, चक्रीय अर्थव्यवस्था और सामाजिक-आर्थिक प्रगति पर केंद्रित समस्या-समाधान को बढ़ावा देना।'
+  },
+  {
+    id: 4,
+    icon: 'Users',
+    title_en: 'Inclusivity & Diversity',
+    title_hi: 'समावेशिता और विविधता',
+    description_en: 'Cultivating an empathetic, egalitarian, and collaborative campus culture that celebrates diverse cultures, perspectives, and talents.',
+    description_hi: 'एक सहानुभूतिपूर्ण, समतावादी और सहयोगात्मक परिसर संस्कृति का निर्माण करना जो विविध संस्कृतियों, दृष्टिकोणों और प्रतिभाओं का सम्मान करती है।'
+  },
+  {
+    id: 5,
+    icon: 'Heart',
+    title_en: 'Social Responsibility & Patriotism',
+    title_hi: 'सामाजिक उत्तरदायित्व और राष्ट्र सेवा',
+    description_en: 'Dedicated to community welfare, rural transformation, technology transfer to hill areas, and national development goals (Atmanirbhar Bharat).',
+    description_hi: 'सामुदायिक कल्याण, ग्रामीण परिवर्तन, पहाड़ी क्षेत्रों में प्रौद्योगिकी हस्तांतरण और राष्ट्रीय विकास लक्ष्यों (आत्मनिर्भर भारत) के लिए समर्पित।'
+  },
+  {
+    id: 6,
+    icon: 'ClipboardCheck',
+    title_en: 'Lifelong Learning & Leadership',
+    title_hi: 'आजीवन सीखना और नेतृत्व',
+    description_en: 'Nurturing adaptive curiosity, analytical resilience, and leadership qualities in students to excel in dynamically changing global landscapes.',
+    description_hi: 'गतिशील रूप से बदलती वैश्विक चुनौतियों में उत्कृष्ट प्रदर्शन करने के लिए छात्रों में जिज्ञासा, विश्लेषणात्मक लचीलापन और नेतृत्व गुणों का पोषण करना।'
+  }
+];
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 export default function CoreValuesPage() {
   const language = useSelector((state: RootState) => state.language.value);
-  const [coreValues, setCoreValues] = useState<CoreValue[]>([]);
+  const isHindi = language === 'hi';
+
+  const [values, setValues] = useState<CoreValue[]>([]);
+  const [pageData, setPageData] = useState<PageData>(FALLBACK_PAGE);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchCoreValues() {
+    let cancelled = false;
+
+    async function fetchValues() {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/core-values`, { cache: 'no-store' });
+        const res = await fetch(`${API_BASE}/core-values`, { cache: 'no-store' });
         const json = await res.json();
-        if (json.success) {
-          const iconMap: Record<string, any> = { ShieldCheck, Trophy, Users, ClipboardCheck, Globe, Heart };
-          const mapped = json.data.map((item: any) => ({
-            icon: iconMap[item.icon] || ShieldCheck,
-            title: language === 'hi' && item.title_hi ? item.title_hi : item.title_en,
-            description: language === 'hi' && item.description_hi ? item.description_hi : item.description_en
+        if (json.success && !cancelled) {
+          const items = Array.isArray(json.data) && json.data.length > 0 ? json.data : FALLBACK_VALUES;
+          const mapped = items.map((item: any) => ({
+            id: item.id,
+            icon: item.icon || 'ShieldCheck',
+            title: isHindi && item.title_hi ? item.title_hi : item.title_en,
+            description: isHindi && item.description_hi ? item.description_hi : item.description_en,
           }));
-          setCoreValues(mapped);
+          setValues(mapped);
+
+          if (json.page && (json.page.hero_heading_en || json.page.hero_heading_hi)) {
+            setPageData({
+              hero_heading: isHindi && json.page.hero_heading_hi ? json.page.hero_heading_hi : json.page.hero_heading_en || FALLBACK_PAGE.hero_heading,
+              hero_description: isHindi && json.page.hero_description_hi ? json.page.hero_description_hi : json.page.hero_description_en || FALLBACK_PAGE.hero_description,
+              pillars_heading: isHindi && json.page.pillars_heading_hi ? json.page.pillars_heading_hi : json.page.pillars_heading_en || FALLBACK_PAGE.pillars_heading,
+              pillars_subtitle: isHindi && json.page.pillars_subtitle_hi ? json.page.pillars_subtitle_hi : json.page.pillars_subtitle_en || FALLBACK_PAGE.pillars_subtitle,
+            });
+          }
         }
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching core values:', err);
+        if (!cancelled) {
+          setValues(
+            FALLBACK_VALUES.map((item) => ({
+              id: item.id,
+              icon: item.icon,
+              title: isHindi ? item.title_hi : item.title_en,
+              description: isHindi ? item.description_hi : item.description_en,
+            }))
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
-    fetchCoreValues();
-  }, [language]);
+
+    fetchValues();
+    return () => {
+      cancelled = true;
+    };
+  }, [isHindi]);
 
   return (
-    <div className="min-h-screen bg-white">
-      
-
-      <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link
-              href="/"
-              className="hover:text-[#800000] transition-colors duration-200"
-            >
-              Home
-            </Link>
-            <span>›</span>
-            <span className="text-gray-400">About</span>
-            <span>›</span>
-            <span className="text-[#800000] font-medium">Core Values</span>
-          </nav>
+    <div className="min-h-screen bg-[#f8f9fa] font-sans pb-24">
+      {/* Breadcrumb */}
+      <div className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'संस्थान के बारे में' : 'About NITH'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'मूल मूल्य' : 'Core Values'}
+          </span>
         </div>
       </div>
 
-      <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-700"></div>
+      {/* Hero Header */}
+      <div className="bg-gradient-to-r from-[#500c0e] via-[#631012] to-[#7a1a1d] text-white py-14 px-4 sm:px-6 lg:px-8 shadow-inner">
+        <div className="max-w-6xl mx-auto space-y-4 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
+            <Sparkles size={14} />
+            <span>{isHindi ? 'संस्थागत सिद्धांत' : 'Guiding Principles'}</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+            {pageData.hero_heading}
+          </h1>
+          <p className="text-white/80 max-w-3xl mx-auto text-sm sm:text-base font-light leading-relaxed">
+            {pageData.hero_description}
+          </p>
+        </div>
+      </div>
+
+      {/* Main Grid */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 space-y-12">
+        <div className="text-center space-y-1 pt-4">
+          <h2 className="text-2xl font-bold text-[#631012] uppercase tracking-wide">
+            {pageData.pillars_heading}
+          </h2>
+          <p className="text-xs text-gray-500 max-w-xl mx-auto">
+            {pageData.pillars_subtitle}
+          </p>
         </div>
 
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4xIi8+PC9nPjwvc3ZnPg==')] opacity-5"></div>
-
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
-        >
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6">
-            Core Values
-          </h1>
-          <p className="text-white/90 max-w-3xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            NITH is committed to fostering an environment of academic excellence, ethical integrity, and inclusive growth. Our core values reflect our dedication to nurturing future leaders, promoting innovative research, and building a community rooted in respect and responsibility.
-          </p>
-        </motion.div>
-      </section>
-
-      <section className="relative py-24 px-6 bg-gradient-to-b from-white via-gray-50/50 to-white">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <span className="inline-block px-4 py-1.5 bg-[#800000]/5 text-[#800000] text-sm font-semibold rounded-full mb-4">
-              Six Pillars
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Our Guiding Principles
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-              The foundation of our institutional excellence and ethical
-              leadership
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coreValues.map((value, index) => {
-              const Icon = value.icon;
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-200 rounded-xl">
+            <Loader2 className="w-8 h-8 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading core values...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {values.map((item) => {
+              const IconComp = ICON_MAP[item.icon] || ShieldCheck;
               return (
-                <motion.div
-                  key={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: '-50px' }}
-                  variants={fadeInScale}
-                  transition={{
-                    duration: 0.5,
-                    delay: index * 0.1,
-                  }}
-                  whileHover={{
-                    y: -8,
-                    transition: { type: 'spring', stiffness: 300 },
-                  }}
-                  className="group relative bg-white border border-gray-200 rounded-3xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300"
+                <div
+                  key={item.id}
+                  className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-[#631012]/40 transition-all duration-300 flex flex-col space-y-4 group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#800000]/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#800000] to-[#631012] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <Icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-[#800000] transition-colors">
-                      {value.title}
+                  <div className="w-12 h-12 rounded-lg bg-[#631012]/10 text-[#631012] flex items-center justify-center group-hover:bg-[#631012] group-hover:text-white transition-colors duration-300 shrink-0">
+                    <IconComp size={24} />
+                  </div>
+                  <div className="space-y-2 flex-grow">
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#631012] transition-colors">
+                      {item.title}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {value.description}
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                      {item.description}
                     </p>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
-        </div>
-      </section>
-
-      <section className="relative py-24 px-6 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
-          >
-            <span className="inline-block px-4 py-1.5 bg-[#800000]/5 text-[#800000] text-sm font-semibold rounded-full mb-4">
-              In Practice
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Our Vision in Action
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-              How we bring these values to life every day
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInScale}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="bg-white rounded-3xl shadow-xl border border-gray-200 p-10 md:p-14"
-          >
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-gray-700 leading-relaxed text-lg">
-                  At NIT Hamirpur, these core values are not just statements —
-                  they are the foundation of our daily academic and
-                  administrative life. They guide our decisions, shape our
-                  culture, and inspire our community to strive for excellence.
-                </p>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-gray-700 leading-relaxed text-lg">
-                  From fostering innovation in research to creating an inclusive
-                  environment for students from diverse backgrounds, we
-                  integrate these principles into every aspect of institutional
-                  functioning.
-                </p>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-gray-700 leading-relaxed text-lg">
-                  Our commitment to accountability ensures transparency in
-                  governance, while empathy drives us to support the holistic
-                  development of every member of our academic family.
-                </p>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <p className="text-center text-gray-600 italic text-lg">
-                  Together, these values create a vibrant, ethical, and
-                  progressive institution dedicated to shaping future leaders
-                  and innovators.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      
+        )}
+      </main>
     </div>
   );
 }

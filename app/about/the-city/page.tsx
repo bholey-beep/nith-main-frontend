@@ -1,263 +1,293 @@
 'use client';
+
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+import {
+  ChevronRight,
+  Landmark,
+  Sparkles,
+  Sun,
+  GraduationCap,
+  MapPin,
+  Mountain,
+  BookOpen,
+  Loader2,
+} from 'lucide-react';
 
-
-import { useEffect, useState } from 'react';
-
-import { MapPin, Mountain, Route } from 'lucide-react';
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const fadeInScale = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { opacity: 1, scale: 1 },
-};
-
-interface CityInfoCard {
-  icon: React.ComponentType<{ className?: string }>;
+interface CityInfo {
+  id: number;
+  icon: string;
   title: string;
-  subtitle: string;
+  description: string;
+  image_url: string;
 }
 
-export default function AboutCityPage() {
-  const language = useSelector((state: RootState) => state.language.value);
+interface CityCard {
+  id: number;
+  label: string;
+  value: string;
+}
 
-  const [cityInfo, setCityInfo] = useState<CityInfoCard[]>([]);
+interface PageData {
+  heading: string;
+  introduction: string;
+  overview_title: string;
+  overview_subtitle: string;
+}
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  Landmark,
+  Sparkles,
+  Sun,
+  GraduationCap,
+  Mountain,
+  BookOpen,
+};
+
+const FALLBACK_PAGE: PageData = {
+  heading: 'About Hamirpur City',
+  introduction: 'Hamirpur, the educational heartland of Himachal Pradesh, is a vibrant town nestled amidst the tranquil pine-clad hills of the Shivalik range. Renowned for having the highest literacy rate in the state and second highest in India, Hamirpur combines serene natural splendor with a rich cultural heritage and dynamic student community.',
+  overview_title: 'City Overview & Cultural Heritage',
+  overview_subtitle: 'Discover the History, Climate, Culture, and Tourist Attractions of Hamirpur.',
+};
+
+const FALLBACK_CARDS = [
+  { id: 1, label: 'State & District', value: 'Himachal Pradesh (Hamirpur Dist.)' },
+  { id: 2, label: 'Elevation', value: '785 metres (2,575 ft) AMSL' },
+  { id: 3, label: 'Literacy Rate', value: '88.15% (Highest in HP)' },
+  { id: 4, label: 'Climate', value: 'Sub-tropical to Temperate' },
+];
+
+const FALLBACK_INFO = [
+  {
+    id: 1,
+    icon: 'Landmark',
+    title_en: 'Historic Sujanpur Tira & Fort',
+    title_hi: 'ऐतिहासिक सुजानपुर टीरा और किला',
+    description_en: 'Built in 1748 AD by Raja Abhay Chand and expanded by Maharaja Sansar Chand, famed for Kangra wall paintings and the royal chaugan (ground).',
+    description_hi: '1748 ईस्वी में राजा अभय चंद द्वारा निर्मित और महाराजा संसार चंद द्वारा विस्तारित, कांगड़ा भित्ति चित्रों और शाही चौगान के लिए प्रसिद्ध।',
+    image_url: 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    id: 2,
+    icon: 'Sparkles',
+    title_en: 'Baba Balak Nath Temple, Deotsidh',
+    title_hi: 'बाबा बालक नाथ मंदिर, दियोटसिद्ध',
+    description_en: 'A holy cave shrine situated on the Dhaulagiri hill border attracting millions of pilgrims from across India and the globe during the Chaitra Fair.',
+    description_hi: 'धौलागिरी पहाड़ी सीमा पर स्थित एक पवित्र गुफा मंदिर जो चैत्र मेले के दौरान भारत और दुनिया भर से लाखों तीर्थयात्रियों को आकर्षित करता है।',
+    image_url: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    id: 3,
+    icon: 'Sun',
+    title_en: 'Scenic Pine Forests & Shivalik Vistas',
+    title_hi: 'सुरम्य चीड़ के जंगल और शिवालिक दृश्य',
+    description_en: 'Clean mountain air, invigorating nature trails, and breathtaking panoramic views of the snow-clad Dhauladhar peaks during winter months.',
+    description_hi: 'स्वच्छ पहाड़ी हवा, स्फूर्तिदायक प्रकृति ट्रेल्स और सर्दियों के महीनों के दौरान बर्फ से ढकी धौलाधार चोटियों के लुभावने दृश्य।',
+    image_url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    id: 4,
+    icon: 'GraduationCap',
+    title_en: 'Premier Academic & Research Hub',
+    title_hi: 'प्रमुख शैक्षणिक और अनुसंधान केंद्र',
+    description_en: 'A thriving ecosystem of scholars, engineers, and scientists making Hamirpur a beacon of innovation and youth empowerment in North India.',
+    description_hi: 'विद्वानों, इंजीनियरों और वैज्ञानिकों का एक संपन्न पारिस्थितिकी तंत्र जो हमीरपुर को उत्तर भारत में नवाचार और युवा सशक्तिकरण का एक प्रकाशस्तंभ बनाता है।',
+    image_url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80'
+  }
+];
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+export default function TheCityPage() {
+  const language = useSelector((state: RootState) => state.language.value);
+  const isHindi = language === 'hi';
+
+  const [cityInfo, setCityInfo] = useState<CityInfo[]>([]);
+  const [cards, setCards] = useState<CityCard[]>(FALLBACK_CARDS);
+  const [descriptions, setDescriptions] = useState<string[]>([]);
+  const [pageData, setPageData] = useState<PageData>(FALLBACK_PAGE);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchCity() {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/about-city`, { cache: 'no-store' });
+        const res = await fetch(`${API_BASE}/about-city`, { cache: 'no-store' });
         const json = await res.json();
-        if (json.success) {
-          const iconMap: Record<string, any> = { MapPin, Mountain, Route };
-          const mapped = json.data.map((item: any) => ({
-            icon: iconMap[item.icon] || Mountain,
-            title: language === 'hi' && item.title_hi ? item.title_hi : item.title_en,
-            subtitle: language === 'hi' && item.description_hi ? item.description_hi : item.description_en
-          }));
-          setCityInfo(mapped);
+        if (json.success && !cancelled) {
+          const items = Array.isArray(json.data) && json.data.length > 0 ? json.data : FALLBACK_INFO;
+          setCityInfo(
+            items.map((c: any) => ({
+              id: c.id,
+              icon: c.icon || 'Landmark',
+              title: isHindi && c.title_hi ? c.title_hi : c.title_en,
+              description: isHindi && c.description_hi ? c.description_hi : c.description_en,
+              image_url: c.image_url || '',
+            }))
+          );
+
+          if (Array.isArray(json.cards) && json.cards.length > 0) {
+            setCards(
+              json.cards.map((card: any) => ({
+                id: card.id,
+                label: isHindi && card.label_hi ? card.label_hi : card.label_en,
+                value: isHindi && card.value_hi ? card.value_hi : card.value_en,
+              }))
+            );
+          }
+
+          if (Array.isArray(json.descriptions) && json.descriptions.length > 0) {
+            setDescriptions(
+              json.descriptions.map((d: any) => (isHindi && d.description_hi ? d.description_hi : d.description_en))
+            );
+          }
+
+          if (json.page && (json.page.heading_en || json.page.heading_hi)) {
+            setPageData({
+              heading: isHindi && json.page.heading_hi ? json.page.heading_hi : json.page.heading_en || FALLBACK_PAGE.heading,
+              introduction: isHindi && json.page.introduction_hi ? json.page.introduction_hi : json.page.introduction_en || FALLBACK_PAGE.introduction,
+              overview_title: isHindi && json.page.overview_title_hi ? json.page.overview_title_hi : json.page.overview_title_en || FALLBACK_PAGE.overview_title,
+              overview_subtitle: isHindi && json.page.overview_subtitle_hi ? json.page.overview_subtitle_hi : json.page.overview_subtitle_en || FALLBACK_PAGE.overview_subtitle,
+            });
+          }
         }
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching city info:', err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+
     fetchCity();
-  }, [language]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isHindi]);
 
   return (
-    <div className="min-h-screen bg-white">
-      
-
-      <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link
-              href="/"
-              className="hover:text-[#800000] transition-colors duration-200"
-            >
-              {language == 'en' ? 'Home' : 'होम'}
-            </Link>
-            <span>›</span>
-            <span className="text-gray-400">
-              {language == 'en' ? 'About' : 'परिचय'}
-            </span>
-            <span>›</span>
-            <span className="text-[#800000] font-medium">
-              {language == 'en' ? 'About the City' : 'शहर के बारे में'}
-            </span>
-          </nav>
+    <div className="min-h-screen bg-[#f8f9fa] font-sans pb-24">
+      {/* Breadcrumb */}
+      <div className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'संस्थान के बारे में' : 'About NITH'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'हमीरपुर शहर' : 'The City'}
+          </span>
         </div>
       </div>
 
-      <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-700"></div>
+      {/* Hero Header */}
+      <div className="bg-gradient-to-r from-[#500c0e] via-[#631012] to-[#7a1a1d] text-white py-14 px-4 sm:px-6 lg:px-8 shadow-inner">
+        <div className="max-w-6xl mx-auto space-y-4 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
+            <MapPin size={14} />
+            <span>{isHindi ? 'हिमाचल प्रदेश की शिक्षा राजधानी' : 'Education Capital of Himachal Pradesh'}</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+            {pageData.heading}
+          </h1>
+          <p className="text-white/80 max-w-3xl mx-auto text-sm sm:text-base font-light leading-relaxed">
+            {pageData.introduction}
+          </p>
+        </div>
+      </div>
+
+      {/* Main Grid */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 space-y-12">
+        {/* City Stats Strip */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+          {cards.map((card) => (
+            <div key={card.id} className="p-3 text-center space-y-1">
+              <div className="text-xs text-gray-500 font-medium">
+                {card.label}
+              </div>
+              <div className="text-sm sm:text-base font-bold text-gray-900">
+                {card.value}
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4xIi8+PC9nPjwvc3ZnPg==')] opacity-5"></div>
-
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
-        >
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6">
-            {language == 'en' ? 'About Hamirpur' : 'हमीरपुर के बारे में'}
-          </h1>
-          <p className="text-white/90 max-w-3xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            Set in the peaceful hills of Himachal Pradesh, Hamirpur offers a clean, calm, and welcoming environment for all who visit NIT Hamirpur. With its friendly community and natural beauty, the city creates the perfect backdrop for learning, growth, and new beginnings.
-          </p>
-        </motion.div>
-      </section>
-
-      <section className="relative py-24 px-6 bg-gradient-to-b from-white via-gray-50/50 to-white">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              {language == 'en' ? 'City Overview' : 'शहर का अवलोकन'}
+        {/* Narrative Section */}
+        {descriptions.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8 space-y-4">
+            <h2 className="text-xl font-bold text-gray-900 border-l-4 border-[#631012] pl-3">
+              {pageData.overview_title}
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-              {language == 'en'
-                ? "Essential information about Hamirpur's location and characteristics"
-                : 'हमीरपुर के स्थान और विशेषताओं के बारे में आवश्यक जानकारी'}
+            <div className="text-gray-700 text-xs sm:text-sm leading-relaxed space-y-3">
+              {descriptions.map((desc, idx) => (
+                <p key={idx}>{desc}</p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* City Highlights & Tourist Landmarks */}
+        <div className="space-y-6">
+          <div className="text-center space-y-1">
+            <h2 className="text-2xl font-bold text-[#631012] uppercase tracking-wide">
+              {isHindi ? 'हमीरपुर के प्रमुख आकर्षण व विरासत' : 'City Attractions & Heritage'}
+            </h2>
+            <p className="text-xs text-gray-500">
+              {pageData.overview_subtitle}
             </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {cityInfo.map((info, index) => {
-              const Icon = info.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={fadeInScale}
-                  transition={{
-                    duration: 0.5,
-                    delay: 0.1 + index * 0.1,
-                  }}
-                  whileHover={{
-                    y: -8,
-                    transition: { type: 'spring', stiffness: 300 },
-                  }}
-                  className="group relative bg-white rounded-3xl p-8 hover:shadow-2xl transition-all duration-300 border border-gray-100"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#800000]/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                  <div className="relative text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#800000] to-[#631012] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <Icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#800000] transition-colors">
-                      {info.title}
-                    </h3>
-                    <p className="text-gray-600">{info.subtitle}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
           </div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.7, delay: 0.4 }}
-            className="bg-white rounded-3xl shadow-xl border border-gray-200 p-8 md:p-12"
-          >
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="flex items-center gap-5">
-                  <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-700 leading-relaxed">
-                    {language == 'en'
-                      ? `Hamirpur, the district headquarter, is situated at an altitude of 785 meters in the Himalayan State of Himachal Pradesh, India. Hamirpur is a clean and eco-friendly district and is famous for its high literacy rate.`
-                      : `हमीरपुर, जिला मुख्यालय, हिमाचल प्रदेश के हिमालयी राज्य में 785 मीटर की ऊंचाई पर स्थित है। हमीरपुर एक स्वच्छ और पर्यावरण के अनुकूल जिला है और अपनी उच्च साक्षरता दर के लिए प्रसिद्ध है।`}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-5">
-                  <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-700 leading-relaxed">
-                    {language == 'en'
-                      ? `Hamirpur City is surrounded by pine tree forest and has a good city infrastructure ranging from Quality Educational Institutions including NIT, State Universities and Skill Learning Centres.`
-                      : `हमीरपुर शहर देवदार के जंगल से घिरा हुआ है और NIT, राज्य विश्वविद्यालयों और कौशल सीखने के केंद्रों सहित गुणवत्ता वाली शैक्षणिक संस्थाओं की अच्छी शहरी बुनियादी ढांचे है।`}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-5">
-                  <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-700 leading-relaxed">
-                    {language == 'en'
-                      ? `During winter, the climate is cold but pleasant when woolens are required. During summer the maximum temperature is around 40 degrees Celsius and cottons are recommended.`
-                      : `सर्दियों में जलवायु ठंडी लेकिन सुखद होती है जब ऊनी कपड़ों की आवश्यकता होती है। गर्मी के दौरान अधिकतम तापमान लगभग 40 डिग्री सेल्सियस होता है और कपास की सिफारिश की जाती है।`}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-5">
-                  <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-700 leading-relaxed">
-                    {language == 'en'
-                      ? `It is a major junction on National Highway 3 while National Highway 103 starts from here. The bulk of the population speaks Hindi, with English widely understood.`
-                      : `यह राष्ट्रीय राजमार्ग 3 पर एक प्रमुख जंक्शन है जबकि राष्ट्रीय राजमार्ग 103 यहां से शुरू होता है। अधिकांश आबादी हिंदी बोलती है, अंग्रेजी व्यापक रूप से समझी जाती है।`}
-                  </p>
-                </div>
-              </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-gray-200">
+              <Loader2 className="w-8 h-8 animate-spin text-[#631012] mb-2" />
+              <p className="text-xs font-mono text-gray-500">Loading city attractions...</p>
             </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="relative py-24 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              {language == 'en' ? 'Location Map' : 'स्थान का नक्शा'}
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-              {language == 'en'
-                ? 'Explore our campus location in the scenic Hamirpur valley'
-                : 'सुंदर हमीरपुर घाटी में हमारे परिसर के स्थान की खोज करें'}
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="bg-gradient-to-br from-gray-50 to-white rounded-3xl shadow-2xl p-6 md:p-8 border border-gray-200"
-          >
-            <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-xl">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3404.8919045449387!2d76.52076631515635!3d31.456267681398645!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391adb4924f6f56b%3A0x2e7c3c1c6ea930c5!2sNational%20Institute%20of%20Technology%2C%20Hamirpur!5e0!3m2!1sen!2sin!4v1635847891234!5m2!1sen!2sin"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="NIT Hamirpur Location Map"
-              ></iframe>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {cityInfo.map((item) => {
+                const IconComp = ICON_MAP[item.icon] || Landmark;
+                return (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#631012]/40 transition-all overflow-hidden flex flex-col group"
+                  >
+                    {item.image_url && (
+                      <div className="h-48 overflow-hidden relative">
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    )}
+                    <div className="p-6 space-y-3 flex-grow flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-[#631012]/10 text-[#631012] flex items-center justify-center shrink-0">
+                            <IconComp size={18} />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#631012] transition-colors">
+                            {item.title}
+                          </h3>
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </motion.div>
+          )}
         </div>
-      </section>
-
-      
+      </main>
     </div>
   );
 }

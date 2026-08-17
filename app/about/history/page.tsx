@@ -1,515 +1,265 @@
 'use client';
-import React from 'react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
 
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-
-
-import { useEffect, useState } from 'react';
-
-const fadeUp = {
-  hidden: {
-    opacity: 0,
-    y: 40,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-  },
-};
-
-const fadeInLeft = {
-  hidden: {
-    opacity: 0,
-    x: -50,
-  },
-  visible: {
-    opacity: 1,
-    x: 0,
-  },
-};
-
-const fadeInRight = {
-  hidden: {
-    opacity: 0,
-    x: 50,
-  },
-  visible: {
-    opacity: 1,
-    x: 0,
-  },
-};
+import { ChevronRight, Calendar, Landmark, Award, BookOpen, Clock, Loader2 } from 'lucide-react';
 
 interface TimelineEvent {
+  id: number;
   year: string;
-  date: string;
   title: string;
   description: string;
 }
 
+interface PageOverview {
+  description1: string;
+  description2: string;
+  legacy: string;
+}
+
+const FALLBACK_OVERVIEW: PageOverview = {
+  description1: 'National Institute of Technology Hamirpur (NITH), nestled in the scenic Shivalik ranges of Himachal Pradesh, was established in 1986 as Regional Engineering College (REC) Hamirpur, a joint venture of the Government of India and the Government of Himachal Pradesh.',
+  description2: 'The institute was upgraded to National Institute of Technology with Deemed University status on June 26, 2002, and later awarded the status of Institute of National Importance under the NIT Act 2007. Over the decades, NITH has emerged as a premier technical education institution committed to excellence in academics, groundbreaking research, and societal development.',
+  legacy: 'Spanning over 320 acres of lush pine-forested terrain, NIT Hamirpur is celebrated for its world-class academic environment, high-impact innovations, vibrant student life, and global alumni network.',
+};
+
+const FALLBACK_OVERVIEW_HI: PageOverview = {
+  description1: 'राष्ट्रीय प्रौद्योगिकी संस्थान हमीरपुर (एनआईटीएच), हिमाचल प्रदेश की सुरम्य शिवालिक पर्वतमाला में स्थित, 1986 में भारत सरकार और हिमाचल प्रदेश सरकार के एक संयुक्त उद्यम के रूप में क्षेत्रीय इंजीनियरिंग कॉलेज (आरईसी) हमीरपुर के रूप में स्थापित किया गया था।',
+  description2: 'संस्थान को 26 जून 2002 को मानद विश्वविद्यालय के दर्जे के साथ राष्ट्रीय प्रौद्योगिकी संस्थान में अपग्रेड किया गया, और बाद में एनआईटी अधिनियम 2007 के तहत राष्ट्रीय महत्व का संस्थान घोषित किया गया।',
+  legacy: '320 एकड़ से अधिक हरे-भरे चीड़ के जंगलों में फैला, एनआईटी हमीरपुर अपने विश्वस्तरीय शैक्षणिक वातावरण, नवाचार, जीवंत छात्र जीवन और वैश्विक पूर्व छात्र नेटवर्क के लिए प्रसिद्ध है।',
+};
+
+const FALLBACK_TIMELINE = [
+  {
+    id: 1,
+    year: '1986',
+    title_en: 'Foundation as Regional Engineering College',
+    title_hi: 'क्षेत्रीय इंजीनियरिंग कॉलेज के रूप में स्थापना',
+    description_en: 'Established as REC Hamirpur with Civil and Electrical Engineering undergraduate programmes to advance technical education in the Himalayan region.',
+    description_hi: 'हिमालयी क्षेत्र में तकनीकी शिक्षा को बढ़ावा देने के लिए सिविल और इलेक्ट्रिकल इंजीनियरिंग स्नातक कार्यक्रमों के साथ आरईसी हमीरपुर के रूप में स्थापित।'
+  },
+  {
+    id: 2,
+    year: '1989',
+    title_en: 'Introduction of Mechanical and Electronics Disciplines',
+    title_hi: 'मैकेनिकल और इलेक्ट्रॉनिक्स विषयों की शुरुआत',
+    description_en: 'Expanded academic footprint with Mechanical Engineering and Electronics & Communication Engineering departments and laboratory complexes.',
+    description_hi: 'मैकेनिकल इंजीनियरिंग और इलेक्ट्रॉनिक्स एवं संचार इंजीनियरिंग विभागों और प्रयोगशाला परिसरों के साथ शैक्षणिक विस्तार।'
+  },
+  {
+    id: 3,
+    year: '1995',
+    title_en: 'Launch of Computer Science & Engineering',
+    title_hi: 'कंप्यूटर साइंस एंड इंजीनियरिंग की शुरुआत',
+    description_en: 'Established the Department of Computer Science & Engineering and campus-wide computer networking infrastructure.',
+    description_hi: 'कंप्यूटर साइंस एंड इंजीनियरिंग विभाग और परिसर-व्यापी कंप्यूटर नेटवर्किंग बुनियादी ढांचे की स्थापना।'
+  },
+  {
+    id: 4,
+    year: '2002',
+    title_en: 'Deemed University & National Institute of Technology',
+    title_hi: 'डीम्ड यूनिवर्सिटी और राष्ट्रीय प्रौद्योगिकी संस्थान',
+    description_en: 'Upgraded to National Institute of Technology (NIT) with Deemed University status, empowering autonomous curriculum and advanced research degree offerings.',
+    description_hi: 'डीम्ड यूनिवर्सिटी के दर्जे के साथ राष्ट्रीय प्रौद्योगिकी संस्थान (एनआईटी) में अपग्रेड किया गया, जिससे स्वायत्त पाठ्यक्रम और उन्नत अनुसंधान कार्यक्रमों का मार्ग प्रशस्त हुआ।'
+  },
+  {
+    id: 5,
+    year: '2007',
+    title_en: 'Institute of National Importance (INI)',
+    title_hi: 'राष्ट्रीय महत्व का संस्थान (आईएनआई)',
+    description_en: 'Enacted by the Parliament of India under the NIT Act 2007 as an Institute of National Importance, positioning NITH at the forefront of national education.',
+    description_hi: 'एनआईटी अधिनियम 2007 के तहत भारत की संसद द्वारा राष्ट्रीय महत्व के संस्थान के रूप में घोषित किया गया।'
+  },
+  {
+    id: 6,
+    year: '2015',
+    title_en: 'Centres of Excellence & International Collaborations',
+    title_hi: 'उत्कृष्टता केंद्र और अंतर्राष्ट्रीय सहयोग',
+    description_en: 'Inauguration of state-of-the-art research centres in Energy and Environmental Engineering, Materials Science, and MoUs with global universities.',
+    description_hi: 'ऊर्जा और पर्यावरण इंजीनियरिंग, सामग्री विज्ञान में अत्याधुनिक अनुसंधान केंद्रों का उद्घाटन और वैश्विक विश्वविद्यालयों के साथ समझौता ज्ञापन।'
+  },
+  {
+    id: 7,
+    year: '2025',
+    title_en: 'Pioneering NEP 2020 & AI Interdisciplinary Research',
+    title_hi: 'एनईपी 2020 और एआई अंतःविषय अनुसंधान में अग्रणी',
+    description_en: 'Implementing multidisciplinary NEP 2020 curriculum, cutting-edge AI/ML centres, robust incubation ecosystems, and green sustainable campus initiatives.',
+    description_hi: 'बहुविषयक एनईपी 2020 पाठ्यक्रम, अत्याधुनिक एआई/एमएल केंद्र, मजबूत इनक्यूबेशन पारिस्थितिकी तंत्र और हरित सतत परिसर पहल का कार्यान्वयन।'
+  }
+];
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export default function HistoryPage() {
   const language = useSelector((state: RootState) => state.language.value);
+  const isHindi = language === 'hi';
+
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+  const [overview, setOverview] = useState<PageOverview>(FALLBACK_OVERVIEW);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchHistory() {
       try {
         setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/history`, { cache: 'no-store' });
+        const res = await fetch(`${API_BASE}/history`, { cache: 'no-store' });
         const json = await res.json();
-        if (json.success) {
-          const mapped = json.data.map((item: any) => ({
+        if (json.success && !cancelled) {
+          // Process timeline
+          const items = Array.isArray(json.data) && json.data.length > 0 ? json.data : FALLBACK_TIMELINE;
+          const mapped = items.map((item: any) => ({
+            id: item.id,
             year: item.year,
-            date: item.year, // Using year as date if there's no date field
-            title: language === 'hi' && item.title_hi ? item.title_hi : item.title_en,
-            description: language === 'hi' && item.description_hi ? item.description_hi : item.description_en
+            title: isHindi && item.title_hi ? item.title_hi : item.title_en,
+            description: isHindi && item.description_hi ? item.description_hi : item.description_en,
           }));
           setTimelineEvents(mapped);
+
+          // Process overview
+          if (json.page && (json.page.description1_en || json.page.description1_hi)) {
+            setOverview({
+              description1: isHindi && json.page.description1_hi ? json.page.description1_hi : json.page.description1_en || FALLBACK_OVERVIEW.description1,
+              description2: isHindi && json.page.description2_hi ? json.page.description2_hi : json.page.description2_en || FALLBACK_OVERVIEW.description2,
+              legacy: isHindi && json.page.legacy_hi ? json.page.legacy_hi : json.page.legacy_en || FALLBACK_OVERVIEW.legacy,
+            });
+          } else {
+            setOverview(isHindi ? FALLBACK_OVERVIEW_HI : FALLBACK_OVERVIEW);
+          }
         }
       } catch (err) {
-        console.error(err);
+        console.error('Error loading history:', err);
+        if (!cancelled) {
+          setOverview(isHindi ? FALLBACK_OVERVIEW_HI : FALLBACK_OVERVIEW);
+          setTimelineEvents(
+            FALLBACK_TIMELINE.map((item) => ({
+              id: item.id,
+              year: item.year,
+              title: isHindi ? item.title_hi : item.title_en,
+              description: isHindi ? item.description_hi : item.description_en,
+            }))
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
-    fetchHistory();
-  }, [language]);
-  return (
-    <div className="min-h-screen bg-gray-50">
-      
 
-      <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link
-              href="/"
-              className="hover:text-[#800000] transition-colors duration-200"
-            >
-              Home
-            </Link>
-            <span>›</span>
-            <span className="text-gray-400">About</span>
-            <span>›</span>
-            <span className="text-[#800000] font-medium">History</span>
-          </nav>
+    fetchHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [isHindi]);
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fa] font-sans pb-24">
+      {/* Breadcrumb Navigation */}
+      <div className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'संस्थान के बारे में' : 'About NITH'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'इतिहास और विकास' : 'History & Timeline'}
+          </span>
         </div>
       </div>
 
-      <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-700"></div>
-        </div>
-
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4xIi8+PC9nPjwvc3ZnPg==')] opacity-5"></div>
-
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
-        >
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6">
-            Our History
+      {/* Hero Header Banner */}
+      <div className="bg-gradient-to-r from-[#500c0e] via-[#631012] to-[#7a1a1d] text-white py-14 px-4 sm:px-6 lg:px-8 shadow-inner">
+        <div className="max-w-6xl mx-auto space-y-4 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
+            <Landmark size={14} />
+            <span>{isHindi ? 'स्थापना वर्ष 1986' : 'Established in 1986'}</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+            {isHindi ? 'एनआईटी हमीरपुर का इतिहास' : 'History of NIT Hamirpur'}
           </h1>
-          <p className="text-white/90 max-w-3xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            From our establishment in 1986 to becoming an Institute of National Importance — a journey of excellence and growth.
+          <p className="text-white/80 max-w-3xl mx-auto text-sm sm:text-base font-light leading-relaxed">
+            {isHindi
+              ? 'क्षेत्रीय इंजीनियरिंग कॉलेज से राष्ट्रीय महत्व के प्रमुख संस्थान तक की गौरवशाली विकास यात्रा।'
+              : 'A proud journey of transformation from Regional Engineering College to an Institute of National Importance.'}
           </p>
-        </motion.div>
-      </section>
-
-      <section className="relative py-16 px-6 bg-white">
-        <div className="max-w-5xl mx-auto relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="text-center"
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-gray-700 leading-relaxed text-lg max-w-4xl mx-auto space-y-4"
-            >
-              <p>
-                National Institute of Technology Hamirpur (NIT Hamirpur) is one
-                of the thirty-one NITs of India. It came into existence on{' '}
-                <span className="font-semibold text-[#800000]">
-                  7th August 1986
-                </span>{' '}
-                as Regional Engineering College (REC) — a joint and cooperative
-                enterprise of the Government of India and the Government of
-                Himachal Pradesh.
-              </p>
-              <p>
-                At the time of its inception, the Institute had only two
-                departments:
-              </p>
-              <div className="flex justify-center gap-8 mt-6 mb-6">
-                <div className="bg-white px-6 py-3 rounded-lg shadow-md border border-gray-200">
-                  <span className="font-semibold text-[#800000]">
-                    Civil Engineering
-                  </span>
-                </div>
-                <div className="bg-white px-6 py-3 rounded-lg shadow-md border border-gray-200">
-                  <span className="font-semibold text-[#800000]">
-                    Electrical Engineering
-                  </span>
-                </div>
-              </div>
-              <p className="text-gray-600 italic">
-                with an initial intake of 30 students in each.
-              </p>
-            </motion.div>
-          </motion.div>
         </div>
-      </section>
+      </div>
 
-      <section className="relative py-24 px-6 bg-gradient-to-b from-white via-gray-50/50 to-white">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Timeline
+      {/* Main Content Container */}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 space-y-12">
+        {/* Narrative Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8 space-y-4 relative z-10">
+          <div className="border-l-4 border-[#631012] pl-4 space-y-1">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              {isHindi ? 'संस्थान की पृष्ठभूमि एवं विकास' : 'Historical Background & Evolution'}
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-              Key milestones in our journey from REC to NIT
+            <p className="text-xs text-gray-500 font-mono">
+              {isHindi ? 'शैक्षणिक उत्कृष्टता और राष्ट्र निर्माण के 38+ वर्ष' : '38+ Years of Technical Excellence & Nation Building'}
             </p>
-          </motion.div>
+          </div>
 
-          <div className="hidden md:block relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-[#631012] via-[#8B1E1E] to-[#631012]"></div>
+          <div className="text-gray-700 text-sm sm:text-base leading-relaxed space-y-4 pt-2">
+            <p>{overview.description1}</p>
+            <p>{overview.description2}</p>
+            <p className="bg-[#631012]/5 p-4 rounded-lg border-l-2 border-[#631012] text-gray-800 font-medium">
+              {overview.legacy}
+            </p>
+          </div>
+        </div>
 
-            {timelineEvents.map((event, index) => {
-              const isLeft = index % 2 === 0;
-              return (
-                <motion.div
-                  key={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: '-100px' }}
-                  variants={isLeft ? fadeInLeft : fadeInRight}
-                  transition={{
-                    duration: 0.7,
-                    ease: 'easeOut',
-                    delay: index * 0.2,
-                  }}
-                  className={`relative flex items-center mb-16 ${
-                    isLeft ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  <div
-                    className={`w-5/12 ${isLeft ? 'pr-12 text-right' : 'pl-12 text-left'}`}
-                  >
-                    <motion.div
-                      className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <div className="mb-3">
-                        <span className="inline-block bg-[#631012] text-white px-4 py-1 rounded-full text-sm font-semibold">
-                          {event.year}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+        {/* Chronological Timeline Section */}
+        <div className="space-y-6">
+          <div className="text-center space-y-1">
+            <h2 className="text-2xl font-bold text-[#631012] uppercase tracking-wide">
+              {isHindi ? 'प्रमुख ऐतिहासिक मील के पत्थर' : 'Chronological Milestones'}
+            </h2>
+            <p className="text-xs text-gray-500">
+              {isHindi ? 'संस्थान की स्थापना से लेकर आज तक का महत्वपूर्ण घटनाक्रम' : 'Key historical events shaping our legacy of excellence'}
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-gray-200">
+              <Loader2 className="w-8 h-8 animate-spin text-[#631012] mb-2" />
+              <p className="text-xs font-mono text-gray-500">Loading timeline milestones...</p>
+            </div>
+          ) : (
+            <div className="relative border-l-2 border-[#631012]/30 ml-4 sm:ml-32 space-y-8 py-4">
+              {timelineEvents.map((event, idx) => (
+                <div key={event.id || idx} className="relative pl-6 sm:pl-8 group">
+                  {/* Timeline Badge for Year on Desktop */}
+                  <div className="hidden sm:flex absolute -left-32 top-0.5 w-24 justify-end font-mono font-bold text-sm text-[#631012] text-right">
+                    {event.year}
+                  </div>
+
+                  {/* Bullet Node */}
+                  <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-white border-4 border-[#631012] group-hover:scale-125 transition-transform" />
+
+                  {/* Content Card */}
+                  <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm group-hover:shadow-md group-hover:border-[#631012]/40 transition-all space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="sm:hidden font-mono font-bold text-xs bg-[#631012] text-white px-2 py-0.5 rounded">
+                        {event.year}
+                      </span>
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#631012] transition-colors">
                         {event.title}
                       </h3>
-                      <p className="text-sm text-[#631012] font-medium mb-3">
-                        {event.date}
-                      </p>
-                      <p className="text-gray-600 leading-relaxed">
-                        {event.description}
-                      </p>
-                    </motion.div>
-                  </div>
-
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-5 h-5 bg-[#631012] rounded-full border-4 border-white shadow-lg z-10"></div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          <div className="md:hidden relative">
-            <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-[#631012] via-[#8B1E1E] to-[#631012]"></div>
-
-            {timelineEvents.map((event, index) => (
-              <motion.div
-                key={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: '-50px' }}
-                variants={fadeUp}
-                transition={{
-                  duration: 0.6,
-                  ease: 'easeOut',
-                  delay: index * 0.15,
-                }}
-                className="relative pl-16 pb-12 last:pb-0"
-              >
-                <div className="absolute left-4 top-0 w-5 h-5 bg-[#800000] rounded-full border-4 border-white shadow-lg z-10"></div>
-
-                <motion.div
-                  className="bg-white rounded-xl shadow-lg p-5 border border-gray-200"
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <div className="mb-2">
-                    <span className="inline-block bg-[#800000] text-white px-3 py-1 rounded-full text-xs font-semibold">
-                      {event.year}
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">
-                    {event.title}
-                  </h3>
-                  <p className="text-sm text-[#800000] font-medium mb-2">
-                    {event.date}
-                  </p>
-                  <p className="text-gray-600 leading-relaxed text-sm">
-                    {event.description}
-                  </p>
-                </motion.div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="relative py-24 px-6 bg-gradient-to-b from-white via-gray-50/50 to-white">
-        <div className="max-w-6xl mx-auto relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <span className="inline-block px-4 py-1.5 bg-[#800000]/5 text-[#800000] text-sm font-semibold rounded-full mb-4">
-              Transformation Story
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Journey of Excellence
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-              From humble beginnings to national recognition
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInLeft}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="group relative bg-white rounded-3xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border border-gray-100"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#800000]/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-              <div className="relative">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#800000] to-[#631012] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <svg
-                      className="w-7 h-7 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <span className="inline-block px-3 py-1 bg-[#800000]/10 text-[#800000] text-xs font-bold rounded-full mb-1">
-                      1986
-                    </span>
-                    <h3 className="text-2xl font-bold text-gray-900 group-hover:text-[#800000] transition-colors">
-                      The Beginning
-                    </h3>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-gray-900">
-                        2 Departments:
-                      </span>{' '}
-                      Civil & Electrical Engineering
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-gray-900">
-                        60 Students
-                      </span>{' '}
-                      admitted in the inaugural batch
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-gray-900">
-                        Regional Status:
-                      </span>{' '}
-                      Established as REC Hamirpur
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-gray-900">Vision:</span>{' '}
-                      Quality technical education in the Himalayan region
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                      {event.description}
                     </p>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInRight}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="group relative bg-white rounded-3xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 border border-gray-100"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#800000]/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-              <div className="relative">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#800000] to-[#631012] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <svg
-                      className="w-7 h-7 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <span className="inline-block px-3 py-1 bg-[#800000]/10 text-[#800000] text-xs font-bold rounded-full mb-1">
-                      2025
-                    </span>
-                    <h3 className="text-2xl font-bold text-gray-900 group-hover:text-[#800000] transition-colors">
-                      Today
-                    </h3>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-gray-900">
-                        20+ Departments:
-                      </span>{' '}
-                      Engineering, Sciences & Management
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-gray-900">
-                        5000+ Students
-                      </span>{' '}
-                      pursuing UG, PG & Doctoral programs
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-gray-900">
-                        National Importance:
-                      </span>{' '}
-                      Premier Technical Institution of India
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-[#800000] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-700 leading-relaxed">
-                      <span className="font-bold text-gray-900">
-                        Excellence:
-                      </span>{' '}
-                      Research, Innovation & Academic Leadership
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.7, delay: 0.4 }}
-            className="bg-gradient-to-r from-[#800000] to-[#8B1E1E] rounded-3xl shadow-2xl p-10 md:p-12 text-white relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4xIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
-
-            <div className="relative flex flex-col md:flex-row items-center gap-6">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                <svg
-                  className="w-8 h-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1 text-center md:text-left">
-                <h4 className="text-2xl md:text-3xl font-bold mb-4">
-                  Continuing the Legacy of Excellence
-                </h4>
-                <p className="text-white/90 leading-relaxed text-lg">
-                  From a modest beginning with just 2 departments and 60
-                  students to becoming one of India&apos;s premier technical
-                  institutions, our journey reflects unwavering commitment to
-                  excellence. The transformation from REC to NIT and recognition
-                  as an Institute of National Importance marks pivotal
-                  milestones. Today, with 20+ departments, 5000+ students, and
-                  world-class research facilities, we continue to shape the
-                  future through cutting-edge education, groundbreaking
-                  research, and innovation that serves the nation and beyond.
-                </p>
-              </div>
+              ))}
             </div>
-          </motion.div>
+          )}
         </div>
-      </section>
-
-      
+      </main>
     </div>
   );
 }
