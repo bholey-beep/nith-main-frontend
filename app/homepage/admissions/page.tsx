@@ -4,7 +4,6 @@ import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import {
   Megaphone,
-  FileText,
   ArrowRight,
   X,
 } from 'lucide-react';
@@ -35,8 +34,7 @@ export default function Admissions() {
     admissions: [],
   });
 
-  // ✅ ONLY NEW ADDITION
-  const [lang, setLang] = useState<'en' | 'hi'>('en');
+  const [lang] = useState<'en' | 'hi'>('en');
 
   const [selectedAdmission, setSelectedAdmission] =
     useState<AdmissionItem | null>(null);
@@ -45,31 +43,31 @@ export default function Admissions() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    async function fetchAdmissions() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/admission`
+        );
+
+        const result = await response.json();
+
+        if (result.success) {
+          setData(result.data);
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
     fetchAdmissions();
   }, []);
-
-  const fetchAdmissions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/admission`
-      );
-
-      const result = await response.json();
-
-      if (result.success) {
-        setData(result.data);
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const closeModal = () => setSelectedAdmission(null);
 
@@ -113,7 +111,8 @@ export default function Admissions() {
           <div className="flex flex-col h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
 
             {data.admissions.map((item) => (
-              <div
+              <Link
+                href={`/homepage/admissions/${item.id}`}
                 key={item.id}
                 className="group relative flex items-center justify-between py-6 px-8 border-b border-gray-100 hover:bg-[#631012]/5 transition-all duration-300 cursor-pointer"
               >
@@ -145,7 +144,7 @@ export default function Admissions() {
                   </button>
                 </div>
 
-              </div>
+              </Link>
             ))}
           </div>
         </div>

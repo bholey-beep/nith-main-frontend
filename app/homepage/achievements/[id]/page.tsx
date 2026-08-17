@@ -1,19 +1,34 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store';
 
-export default function AchievementDetail({ params }: { params: { id: string } }) {
+interface AchievementItem {
+  id: number;
+  tagline_en: string;
+  tagline_hi: string;
+  heading_en: string;
+  heading_hi: string;
+  description_en: string;
+  description_hi: string;
+  image: string;
+}
+
+export default function AchievementDetail() {
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const params = useParams<{ id: string }>();
+  const [data, setData] = useState<AchievementItem | null>(null);
   const [loading, setLoading] = useState(true);
   
   const language = useSelector((state: RootState) => state.language.value);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/achievements/${params.id}`)
+    const id = params?.id;
+    if (!id) return;
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/achievements/${id}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success && json.data) {
@@ -25,7 +40,7 @@ export default function AchievementDetail({ params }: { params: { id: string } }
         console.error(err);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [params?.id]);
 
   if (loading) {
     return <div className="p-10 text-center text-gray-500">Loading...</div>;

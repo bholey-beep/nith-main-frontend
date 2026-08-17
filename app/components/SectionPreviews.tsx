@@ -4,6 +4,43 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Trophy, BookOpen, GraduationCap, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
+interface PreviewItem {
+  id?: number | string;
+  title_en?: string;
+  heading_en?: string;
+  tagline_en?: string;
+  description_en?: string;
+  date?: string;
+  image?: string;
+}
+
+const fallbackAchievements: PreviewItem[] = [
+  {
+    id: 1,
+    heading_en: 'NIRF Ranking & National Excellence',
+    tagline_en: 'Ranking',
+    description_en: 'Ranked among top engineering institutes across India for research and academic excellence.',
+  },
+  {
+    id: 2,
+    heading_en: '100+ Patents Filed & Granted',
+    tagline_en: 'Innovation',
+    description_en: 'Faculty and student innovations leading to significant intellectual property output.',
+  },
+  {
+    id: 3,
+    heading_en: 'Smart India Hackathon Winners',
+    tagline_en: 'Student Laurels',
+    description_en: 'First prize won by engineering teams in AI and robotics national competitions.',
+  },
+  {
+    id: 4,
+    heading_en: '₹50+ Crore Research Grants',
+    tagline_en: 'Research',
+    description_en: 'Funded projects and state-of-the-art laboratory development supported by DST & SERB.',
+  },
+];
+
 interface PreviewProps {
   title: string;
   endpoint: string;
@@ -11,37 +48,44 @@ interface PreviewProps {
   icon: React.ReactNode;
   isAchievement?: boolean;
   href: string;
+  itemHref?: (item: PreviewItem, index: number) => string;
 }
 
-export function SectionPreview({ title, endpoint, dataKey, icon, isAchievement, href }: PreviewProps) {
-  const [items, setItems] = useState<any[]>([]);
+export function SectionPreview({ title, endpoint, dataKey, icon, isAchievement, href, itemHref }: PreviewProps) {
+  const [items, setItems] = useState<PreviewItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchItems();
-  }, []);
+    let cancelled = false;
 
-  const fetchItems = async () => {
-    try {
-      const res = await fetch(endpoint);
-      const json = await res.json();
-      if (json.success) {
-        let data = [];
-        if (dataKey && json.data && json.data[dataKey]) {
-          data = json.data[dataKey];
-        } else if (Array.isArray(json.data)) {
-          data = json.data;
-        } else if (json.data && Array.isArray(json.data.admissions)) {
-          data = json.data.admissions;
+    void (async () => {
+      try {
+        const res = await fetch(endpoint);
+        const json = await res.json();
+        if (!cancelled && json.success) {
+          let data: PreviewItem[] = [];
+          if (dataKey && json.data && json.data[dataKey]) {
+            data = json.data[dataKey];
+          } else if (Array.isArray(json.data)) {
+            data = json.data;
+          } else if (json.data && Array.isArray(json.data.admissions)) {
+            data = json.data.admissions;
+          }
+          setItems(data.slice(0, 3));
         }
-        setItems(data.slice(0, 3)); // Only show top 3
+      } catch (err) {
+        console.error('Error fetching preview data:', err);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      console.error('Error fetching preview data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [endpoint, dataKey]);
 
   return (
     <div className="bg-white border border-gray-200 hover:border-[#631012] shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col justify-between group relative overflow-hidden">
@@ -75,7 +119,7 @@ export function SectionPreview({ title, endpoint, dataKey, icon, isAchievement, 
         ) : items.length > 0 ? (
           items.map((item, idx) => (
             <Link
-              href={href}
+              href={itemHref ? itemHref(item, idx) : href}
               key={idx}
               className="block p-3 border border-gray-100 hover:border-gray-200 hover:bg-red-50/30 transition-all duration-200 group/item relative"
             >
@@ -114,70 +158,47 @@ export function SectionPreview({ title, endpoint, dataKey, icon, isAchievement, 
 }
 
 export function AcademicsPreview() {
-  return <SectionPreview title="Academics" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/academic`} dataKey="academics" icon={<BookOpen size={24} />} href="/homepage/academics" />;
+  return <SectionPreview title="Academics" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/academic`} dataKey="academics" icon={<BookOpen size={24} />} href="/homepage/academics" itemHref={(item) => `/homepage/academics/${item.id}`} />;
 }
 
 export function AdmissionsPreview() {
-  return <SectionPreview title="Admissions" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/admission`} dataKey="admissions" icon={<GraduationCap size={24} />} href="/homepage/admissions" />;
+  return <SectionPreview title="Admissions" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/admission`} dataKey="admissions" icon={<GraduationCap size={24} />} href="/homepage/admissions" itemHref={(item) => `/homepage/admissions/${item.id}`} />;
 }
 
 export function NewsPreview() {
-  return <SectionPreview title="News & Updates" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/news`} dataKey="newss" icon={<Calendar size={24} />} href="/homepage/news" />;
+  return <SectionPreview title="News & Updates" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/news`} dataKey="newss" icon={<Calendar size={24} />} href="/homepage/news" itemHref={(item) => `/homepage/news/${item.id}`} />;
 }
 
 export function EventsPreview() {
-  return <SectionPreview title="Events" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/event`} dataKey="events" icon={<Calendar size={24} />} href="/homepage/event" />;
+  return <SectionPreview title="Events" endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/v1/homepage/event`} dataKey="events" icon={<Calendar size={24} />} href="/homepage/event" itemHref={(item) => `/homepage/event/${item.id}`} />;
 }
 
 export function AchievementsPreview() {
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fallbackAchievements = [
-    {
-      id: 1,
-      heading_en: 'NIRF Ranking & National Excellence',
-      tagline_en: 'Ranking',
-      description_en: 'Ranked among top engineering institutes across India for research and academic excellence.',
-    },
-    {
-      id: 2,
-      heading_en: '100+ Patents Filed & Granted',
-      tagline_en: 'Innovation',
-      description_en: 'Faculty and student innovations leading to significant intellectual property output.',
-    },
-    {
-      id: 3,
-      heading_en: 'Smart India Hackathon Winners',
-      tagline_en: 'Student Laurels',
-      description_en: 'First prize won by engineering teams in AI and robotics national competitions.',
-    },
-    {
-      id: 4,
-      heading_en: '₹50+ Crore Research Grants',
-      tagline_en: 'Research',
-      description_en: 'Funded projects and state-of-the-art laboratory development supported by DST & SERB.',
-    },
-  ];
+  const [items, setItems] = useState<PreviewItem[]>([]);
 
   useEffect(() => {
-    async function fetchAchievements() {
+    let cancelled = false;
+
+    void (async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/v1/homepage/achievements`);
         const json = await res.json();
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        if (!cancelled && json.success && Array.isArray(json.data) && json.data.length > 0) {
           setItems(json.data.slice(0, 4));
-        } else {
+        } else if (!cancelled) {
           setItems(fallbackAchievements);
         }
       } catch (err) {
         console.error('Error fetching achievements preview:', err);
-        setItems(fallbackAchievements);
-      } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setItems(fallbackAchievements);
+        }
       }
-    }
-    fetchAchievements();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const displayList = items.length > 0 ? items : fallbackAchievements;
@@ -210,7 +231,7 @@ export function AchievementsPreview() {
         {displayList.map((item, idx) => (
           <Link
             key={item.id || idx}
-            href="/homepage/achievements"
+            href={`/homepage/achievements/${item.id}`}
             className="block h-full"
           >
             <div className="bg-white border border-gray-200 hover:border-[#631012] p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full group relative overflow-hidden">
