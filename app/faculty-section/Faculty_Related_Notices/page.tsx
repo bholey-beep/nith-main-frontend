@@ -1,242 +1,231 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/app/store';
+import { RootState } from '../../redux/store';
+import { ChevronRight, FileText, ExternalLink, Loader2 } from 'lucide-react';
 
-
-import { FileText, Download, Eye, Calendar, AlertCircle } from 'lucide-react';
-
-interface NoticeItem {
+interface FacultyNotice {
   id: number;
+  sl_no: string;
   title_en: string;
   title_hn: string;
-  description_en: string;
-  description_hn: string;
-  category_en: string;
-  category_hn: string;
+  description_en?: string;
+  description_hn?: string;
+  remarks_en?: string;
+  remarks_hn?: string;
   date_en: string;
   date_hn: string;
-  priority_en: string;
-  priority_hn: string;
-  view_url: string;
-  download_url: string;
+  view_url?: string;
+  download_url?: string;
 }
 
-const INITIAL_NOTICES: NoticeItem[] = [
+interface HeadingData {
+  title_en: string;
+  title_hn: string;
+  sub_title_en: string;
+  sub_title_hn: string;
+}
+
+const FALLBACK_HEADING: HeadingData = {
+  title_en: 'Notices/Office Orders/Notifications',
+  title_hn: 'सूचनाएं / कार्यालय आदेश / अधिसूचनाएं',
+  sub_title_en: 'Official notices, office orders, and notifications related to faculty welfare and administration at NIT Hamirpur.',
+  sub_title_hn: 'एनआईटी हमीरपुर में संकाय कल्याण और प्रशासन से संबंधित आधिकारिक सूचनाएं, कार्यालय आदेश और अधिसूचनाएं।',
+};
+
+const FALLBACK_NOTICES: FacultyNotice[] = [
   {
-    id: -1,
-    title_en: 'Faculty Performance Appraisal Submission Deadline',
-    title_hn: 'संकाय प्रदर्शन मूल्यांकन जमा करने की समय सीमा',
-    description_en: 'All faculty members are requested to submit their annual performance appraisal reports by the stipulated deadline.',
-    description_hn: 'सभी संकाय सदस्यों से अनुरोध है कि वे निर्धारित समय सीमा तक अपनी वार्षिक प्रदर्शन मूल्यांकन रिपोर्ट जमा करें।',
-    category_en: 'Academic',
-    category_hn: 'अकादमिक',
-    date_en: 'January 10, 2025',
-    date_hn: '10 जनवरी, 2025',
-    priority_en: 'High',
-    priority_hn: 'उच्च',
-    view_url: '/documents/notice',
-    download_url: '/documents/notice.pdf',
+    id: 1,
+    sl_no: '1',
+    title_en: 'Office order regarding TA DA Entitlements of Temporary Faculty Members',
+    title_hn: 'अस्थायी संकाय सदस्यों के टीए डीए पात्रता के संबंध में कार्यालय आदेश',
+    remarks_en: 'Office of The Registrar , NIT Hamirpur (HP)',
+    remarks_hn: 'कुलसचिव कार्यालय, एनआईटी हमीरपुर (हि.प्र.)',
+    date_en: '08-10-2025',
+    date_hn: '08-10-2025',
+    view_url: 'https://nith.ac.in/uploads/topics/1696752000.pdf',
   },
   {
-    id: -2,
-    title_en: 'Revised Leave Rules for Faculty Members',
-    title_hn: 'संकाय सदस्यों के लिए संशोधित अवकाश नियम',
-    description_en: 'Notification regarding revised leave rules and entitlements for regular and contractual faculty members.',
-    description_hn: 'नियमित और संविदात्मक संकाय सदस्यों के लिए संशोधित अवकाश नियमों और पात्रता के संबंध में अधिसूचना।',
-    category_en: 'Leave & Benefits',
-    category_hn: 'अवकाश और लाभ',
-    date_en: 'January 8, 2025',
-    date_hn: '08 जनवरी, 2025',
-    priority_en: 'Medium',
-    priority_hn: 'मध्यम',
-    view_url: '/documents/leave-rules',
-    download_url: '/documents/leave-rules.pdf',
-  }
+    id: 2,
+    sl_no: '2',
+    title_en: 'Office order regarding CPDA',
+    title_hn: 'सीपीडीए के संबंध में कार्यालय आदेश',
+    remarks_en: 'Dean (Faculty Welfare) , NIT Hamirpur (HP)',
+    remarks_hn: 'डीन (संकाय कल्याण), एनआईटी हमीरपुर (हि.प्र.)',
+    date_en: '14-07-2022',
+    date_hn: '14-07-2022',
+    view_url: 'https://nith.ac.in/uploads/topics/16578687799757.pdf',
+  },
+  {
+    id: 3,
+    sl_no: '3',
+    title_en: 'Notice regarding FDP/e-FDP, STC/e-STC, Workshop/e-Workshop, Seminar/e-Seminar etc.',
+    title_hn: 'एफडीपी/ई-एफडीपी, एसटीसी/ई-एसटीसी, कार्यशाला/ई-कार्यशाला, संगोष्ठी/ई-संगोष्ठी आदि के संबंध में सूचना।',
+    remarks_en: 'Dean (Faculty Welfare) , NIT Hamirpur (HP)',
+    remarks_hn: 'डीन (संकाय कल्याण), एनआईटी हमीरपुर (हि.प्र.)',
+    date_en: '17-09-2021',
+    date_hn: '17-09-2021',
+    view_url: 'https://nith.ac.in/uploads/topics/16318683515822.pdf',
+  },
 ];
 
-export default function FacultyNewsroom() {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+export default function FacultyRelatedNoticesPage() {
   const language = useSelector((state: RootState) => state.language.value);
-  const [notices, setNotices] = useState<NoticeItem[]>([]);
-  const [heading, setHeading] = useState<any>(null);
+  const isHindi = language === 'hi';
+
+  const [heading, setHeading] = useState<HeadingData>(FALLBACK_HEADING);
+  const [notices, setNotices] = useState<FacultyNotice[]>(FALLBACK_NOTICES);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const hRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-notices`, { cache: 'no-store' });
-        const hData = await hRes.json();
-        setHeading(hData);
 
-        const lRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-notices/list`, { cache: 'no-store' });
-        const lData = await lRes.json();
-        
-        let merged = Array.isArray(lData) ? [...lData] : [];
-        INITIAL_NOTICES.forEach(def => {
-            // Check if either the title or the ID already exists in the merged list
-            const exists = merged.some(m => m.title_en === def.title_en || String(m.id) === String(def.id));
-            if (!exists) {
-                merged.push(def);
-            }
-        });
-        setNotices(merged);
+        // Fetch heading
+        const hRes = await fetch(`${API_BASE}/api/faculty-notices`, { cache: 'no-store' });
+        if (hRes.ok) {
+          const hData = await hRes.json();
+          if (!cancelled && hData && hData.title_en) setHeading(hData);
+        }
+
+        // Fetch list
+        const lRes = await fetch(`${API_BASE}/api/faculty-notices/list`, { cache: 'no-store' });
+        if (lRes.ok) {
+          const lData = await lRes.json();
+          if (!cancelled && Array.isArray(lData) && lData.length > 0) {
+            setNotices(lData);
+          }
+        }
       } catch (err) {
-        console.error('Error fetching notices:', err);
-        setNotices(INITIAL_NOTICES);
+        console.error('Error fetching faculty notices:', err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
+
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const categories = useMemo(() => {
-    const cats = new Set(['All']);
-    notices.forEach(n => cats.add(n.category_en));
-    return Array.from(cats);
-  }, [notices]);
-
-  const filteredNotices = useMemo(() => {
-    if (selectedCategory === 'All') return notices;
-    return notices.filter(n => n.category_en === selectedCategory);
-  }, [notices, selectedCategory]);
-
-  const getPriorityColor = (priority: string) => {
-    if (priority === 'High' || priority === 'उच्च') return 'bg-red-100 text-red-800';
-    if (priority === 'Medium' || priority === 'मध्यम') return 'bg-amber-100 text-amber-800';
-    return 'bg-green-100 text-green-800';
-  };
-
   return (
-    <>
-      
-      <div className="min-h-screen bg-gray-50 pb-20">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-16 md:py-24 shadow-inner">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight"
-            >
-              {heading ? (language === 'en' ? heading.title_en : heading.title_hn) : (language === 'en' ? 'Faculty Notices' : 'संकाय संबंधित सूचनाएं')}
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto font-light leading-relaxed"
-            >
-              {heading ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'Important notices, circulars, and announcements for faculty members.' : 'संकाय सदस्यों के लिए महत्वपूर्ण सूचनाएं, परिपत्र और घोषणाएं।')}
-            </motion.p>
-          </div>
-        </section>
-
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-6 -mt-10">
-          {/* Filters */}
-          <div className="bg-white p-4 rounded-xl shadow-xl mb-10 flex flex-wrap gap-3 items-center justify-center border border-gray-100">
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  selectedCategory === cat 
-                  ? 'bg-[#631012] text-white shadow-lg scale-105' 
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                {language === 'en' ? cat : (
-                    cat === 'All' ? 'सभी' :
-                    cat === 'Academic' ? 'अकादमिक' :
-                    cat === 'Administrative' ? 'प्रशासनिक' :
-                    cat === 'Recruitment' ? 'भर्ती' :
-                    cat === 'Promotions' ? 'पदोन्नति' :
-                    cat === 'Leave & Benefits' ? 'अवकाश और लाभ' : cat
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Notices Grid */}
-          <div className="space-y-6">
-            {loading ? (
-                <div className="text-center py-20 text-gray-400">Loading notices...</div>
-            ) : filteredNotices.length > 0 ? (
-                filteredNotices.map((notice, idx) => (
-                    <motion.div
-                        key={notice.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-hidden group"
-                    >
-                        <div className="flex flex-col md:flex-row md:items-center p-6 gap-6">
-                            {/* Date Box */}
-                            <div className="flex-shrink-0 w-24 h-24 bg-gray-50 rounded-2xl flex flex-col items-center justify-center border border-gray-100 group-hover:bg-[#631012]/5 transition-colors">
-                                <Calendar className="w-6 h-6 text-[#631012] mb-1" />
-                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter text-center px-1">
-                                    {language === 'en' ? notice.date_en : notice.date_hn}
-                                </span>
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1">
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                    <span className="px-3 py-1 bg-[#631012]/10 text-[#631012] text-xs font-bold rounded-full uppercase tracking-wider">
-                                        {language === 'en' ? notice.category_en : notice.category_hn}
-                                    </span>
-                                    <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${getPriorityColor(notice.priority_en)}`}>
-                                        <AlertCircle size={12} />
-                                        {language === 'en' ? notice.priority_en : notice.priority_hn}
-                                    </span>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#631012] transition-colors">
-                                    {language === 'en' ? notice.title_en : notice.title_hn}
-                                </h3>
-                                <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-                                    {language === 'en' ? notice.description_en : notice.description_hn}
-                                </p>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex gap-3 md:flex-col lg:flex-row">
-                                <a 
-                                    href={notice.view_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors"
-                                >
-                                    <Eye size={16} /> {language === 'en' ? 'View' : 'देखें'}
-                                </a>
-                                <a 
-                                    href={notice.download_url.startsWith('http') 
-                                        ? `${notice.download_url}${notice.download_url.includes('?') ? '&' : '?'}response-content-disposition=attachment` 
-                                        : notice.download_url
-                                    }
-                                    download
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-[#631012] text-white rounded-xl text-sm font-bold hover:bg-[#7a1214] transition-colors shadow-lg shadow-[#631012]/20"
-                                >
-                                    <Download size={16} /> {language === 'en' ? 'Download' : 'डाउनलोड'}
-                                </a>
-                            </div>
-                        </div>
-                    </motion.div>
-                ))
-            ) : (
-                <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border-2 border-dashed">
-                    No notices found in this category.
-                </div>
-            )}
-          </div>
+    <div className="min-h-screen bg-[#f8f9fa] font-sans pb-24">
+      {/* Breadcrumb Navigation */}
+      <div className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'संकाय अनुभाग' : 'Faculty Section'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'संकाय संबंधित सूचनाएं' : 'Faculty Related Notices'}
+          </span>
         </div>
       </div>
-      
-    </>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        {/* Page Title (Centered as in Screenshot) */}
+        <div className="text-center space-y-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#631012] tracking-tight">
+            {isHindi ? heading.title_hn || heading.title_en : heading.title_en}
+          </h1>
+          {heading.sub_title_en && (
+            <p className="text-xs sm:text-sm text-gray-600 max-w-3xl mx-auto">
+              {isHindi ? heading.sub_title_hn || heading.sub_title_en : heading.sub_title_en}
+            </p>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-300 rounded">
+            <Loader2 className="w-7 h-7 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading notices...</p>
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-300 shadow-sm overflow-hidden">
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm border-collapse">
+                {/* Deep Maroon Table Header */}
+                <thead>
+                  <tr className="bg-[#631012] text-white font-bold text-xs uppercase tracking-wider">
+                    <th className="py-3.5 px-4 border-r border-[#7a1a1d] w-16 text-center">
+                      Sl. No.
+                    </th>
+                    <th className="py-3.5 px-6 border-r border-[#7a1a1d]">
+                      {isHindi ? 'विवरण' : 'Particulars'}
+                    </th>
+                    <th className="py-3.5 px-6 border-r border-[#7a1a1d] w-72">
+                      {isHindi ? 'टिप्पणी' : 'Remarks (if any)'}
+                    </th>
+                    <th className="py-3.5 px-6 w-36 text-center">
+                      {isHindi ? 'अपलोड तिथि' : 'Date of Upload'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 text-gray-800">
+                  {notices.map((item, index) => {
+                    const docUrl = item.view_url || item.download_url;
+                    return (
+                      <tr
+                        key={item.id || index}
+                        className="hover:bg-red-50/30 transition-colors"
+                      >
+                        {/* Sl. No. */}
+                        <td className="py-4 px-4 text-center font-mono font-bold text-gray-700 border-r border-gray-200 align-middle">
+                          {item.sl_no || index + 1}
+                        </td>
+
+                        {/* Particulars */}
+                        <td className="py-4 px-6 border-r border-gray-200 align-middle font-medium">
+                          {docUrl && docUrl !== '#' ? (
+                            <a
+                              href={docUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#631012] hover:text-[#500c0e] hover:underline inline-flex items-center gap-1.5"
+                            >
+                              <span>
+                                {isHindi ? item.title_hn || item.title_en : item.title_en}
+                              </span>
+                              <ExternalLink size={12} className="text-[#631012]/60" />
+                            </a>
+                          ) : (
+                            <span className="text-gray-900">
+                              {isHindi ? item.title_hn || item.title_en : item.title_en}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Remarks */}
+                        <td className="py-4 px-6 border-r border-gray-200 align-middle text-gray-700 text-xs sm:text-sm">
+                          {isHindi ? item.remarks_hn || item.remarks_en || '--' : item.remarks_en || '--'}
+                        </td>
+
+                        {/* Date of Upload */}
+                        <td className="py-4 px-6 text-center font-mono font-semibold text-gray-800 border-gray-200 align-middle whitespace-nowrap text-xs sm:text-sm">
+                          {isHindi ? item.date_hn || item.date_en || '--' : item.date_en || '--'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }

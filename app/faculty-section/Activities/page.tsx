@@ -1,135 +1,215 @@
 'use client';
-import React from 'react';
 
-
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/app/store';
-import { useEffect, useState } from 'react';
+import { RootState } from '../../redux/store';
+import { ChevronRight, CheckCircle2, Award, ShieldCheck, Loader2 } from 'lucide-react';
 
-export default function Page() {
+interface ActivitySubtext {
+  id: number;
+  heading_en: string;
+  heading_hn: string;
+  subheading_en: string;
+  subheading_hn: string;
+  small_text: string;
+}
+
+interface HeadingData {
+  title_en: string;
+  title_hn: string;
+  sub_title_en: string;
+  sub_title_hn: string;
+}
+
+const FALLBACK_HEADING: HeadingData = {
+  title_en: 'ACTIVITIES',
+  title_hn: 'गतिविधियां',
+  sub_title_en: 'As per the schedule ‘C’ of NIT statutes the role and responsibilities of the Dean (Faculty Welfare) is to advice the Director in matters related to:',
+  sub_title_hn: 'एनआईटी संविधियों की अनुसूची \'सी\' के अनुसार डीन (संकाय कल्याण) की भूमिका और जिम्मेदारियां निदेशक को निम्नलिखित से संबंधित मामलों में सलाह देना है:',
+};
+
+const FALLBACK_RESPONSIBILITIES: ActivitySubtext[] = [
+  {
+    id: 1,
+    heading_en: 'Faculty Deputation under QIP',
+    heading_hn: 'क्यूआईपी के तहत संकाय प्रतिनियुक्ति',
+    subheading_en: 'Quality Improvement Programme',
+    subheading_hn: 'गुणवत्ता सुधार कार्यक्रम',
+    small_text: 'Deputation of faculty to various institutions under Quality Improvement Programme.'
+  },
+  {
+    id: 2,
+    heading_en: 'Conferences & Training Assignments',
+    heading_hn: 'सम्मेलन एवं प्रशिक्षण कार्य',
+    subheading_en: 'Conferences, Seminars & Foreign Assignments',
+    subheading_hn: 'सम्मेलन, संगोष्ठियां एवं विदेशी कार्य',
+    small_text: 'Advice the Director for deputation of the faculty members to various conferences, seminars, short-term courses, training programmes, foreign teaching/training assignments etc.'
+  },
+  {
+    id: 3,
+    heading_en: 'Paper Evaluation Committee',
+    heading_hn: 'शोध पत्र मूल्यांकन समिति',
+    subheading_en: 'Conference / Seminar Paper Review',
+    subheading_hn: 'सम्मेलन / संगोष्ठी पेपर समीक्षा',
+    small_text: 'Chair the committee meetings of the evaluation of papers submitted or to be submitted to the conferences / seminar by the faculty members.'
+  },
+  {
+    id: 4,
+    heading_en: 'Faculty Training Programmes',
+    heading_hn: 'संकाय प्रशिक्षण कार्यक्रम',
+    subheading_en: 'Professional Development Workshops',
+    subheading_hn: 'व्यावसायिक विकास कार्यशालाएं',
+    small_text: 'Assist the Director in organizing training programmes for faculty.'
+  },
+  {
+    id: 5,
+    heading_en: 'Campus Infrastructure & Maintenance',
+    heading_hn: 'परिसर बुनियादी ढांचा एवं रखरखाव',
+    subheading_en: 'Supervision of Works & Utilities',
+    subheading_hn: 'निर्माण कार्य एवं उपयोगिताओं का पर्यवेक्षण',
+    small_text: 'Assist the Director in the supervision of the construction and the maintenance work of buildings, roads, water supply, sanitation, lawns and gardens, communication networks, water coolers, air conditioners, telephones, etc.'
+  },
+  {
+    id: 6,
+    heading_en: 'Discipline & Work Ethos',
+    heading_hn: 'अनुशासन एवं कार्य नैतिकता',
+    subheading_en: 'Inter-departmental Harmony',
+    subheading_hn: 'अंतर-विभागीय सामंजस्य',
+    small_text: 'Assist the Director in maintaining the discipline and work ethos among the various departments and between the faculty members.'
+  },
+  {
+    id: 7,
+    heading_en: 'Academic Standards & Excellence',
+    heading_hn: 'शैक्षणिक मानक एवं उत्कृष्टता',
+    subheading_en: 'Institutional Quality & Standards',
+    subheading_hn: 'संस्थागत गुणवत्ता एवं मानक',
+    small_text: 'Assist the Director in maintaining the high academic standards and achieving academic excellence in the institution.'
+  },
+  {
+    id: 8,
+    heading_en: 'Integrity & Commitment Supervision',
+    heading_hn: 'सत्यनिष्ठा एवं प्रतिबद्धता पर्यवेक्षण',
+    subheading_en: 'Faculty Governance & Commitment',
+    subheading_hn: 'संकाय शासन एवं प्रतिबद्धता',
+    small_text: 'Supervision over faculty discipline, integrity and commitment.'
+  }
+];
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+export default function FacultyActivitiesPage() {
   const language = useSelector((state: RootState) => state.language.value);
-  const [heading, setHeading] = useState<any>(null);
-  const [activities, setActivities] = useState<any[]>([]);
+  const isHindi = language === 'hi';
+
+  const [heading, setHeading] = useState<HeadingData>(FALLBACK_HEADING);
+  const [subtexts, setSubtexts] = useState<ActivitySubtext[]>(FALLBACK_RESPONSIBILITIES);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchHeading = async () => {
-      try {
-        const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-activities`, { cache: 'no-store' });
-        const res = await data.json();
-        setHeading(res);
-      } catch (err) {
-        console.error('Fetch heading failed:', err);
-      }
-    };
+    let cancelled = false;
 
-    const fetchActivities = async () => {
+    const fetchData = async () => {
       try {
-        const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-activities/subtext`, { cache: 'no-store' });
-        const res = await data.json();
-        if (Array.isArray(res)) {
-          setActivities(res);
+        setLoading(true);
+
+        // Fetch heading
+        const hRes = await fetch(`${API_BASE}/api/faculty-activities`, { cache: 'no-store' });
+        if (hRes.ok) {
+          const hData = await hRes.json();
+          if (!cancelled && hData && hData.title_en) setHeading(hData);
+        }
+
+        // Fetch subtexts
+        const sRes = await fetch(`${API_BASE}/api/faculty-activities/subtext`, { cache: 'no-store' });
+        if (sRes.ok) {
+          const sData = await sRes.json();
+          if (!cancelled && Array.isArray(sData) && sData.length > 0) {
+            setSubtexts(sData);
+          }
         }
       } catch (err) {
-        console.error('Fetch activities failed:', err);
+        console.error('Error fetching faculty activities:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchHeading();
-    fetchActivities();
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const activitiesData = activities.length > 0 ? activities : [
-    {
-      heading_en: 'Academics',
-      heading_hn: 'अकादमिक',
-      subheading_en: 'Deans, Associate Deans of Academics',
-      subheading_hn: 'अकादमिक के डीन, एसोसिएट डीन',
-      small_text: 'Deans and Associate Deans of Academics represent the academic interests of the institution and oversee academic policies and procedures.',
-    },
-    {
-      heading_en: 'Student Welfare',
-      heading_hn: 'छात्र कल्याण',
-      subheading_en: 'Deans, Associate Deans of Student Welfare',
-      subheading_hn: 'छात्र कल्याण के डीन, एसोसिएट डीन',
-      small_text: 'Deans and Associate Deans of Student Welfare are responsible for the well-being and overall development of the student community.',
-    },
-    {
-      heading_en: 'Faculty Welfare',
-      heading_hn: 'संकाय कल्याण',
-      subheading_en: 'Deans, Associate Deans of Faculty Welfare',
-      subheading_hn: 'संकाय कल्याण के डीन, एसोसिएट डीन',
-      small_text: 'Deans and Associate Deans of Faculty Welfare support faculty members and work towards their professional development and well-being.',
-    },
-    {
-      heading_en: 'Cultural Activities',
-      heading_hn: 'सांस्कृतिक गतिविधियां',
-      subheading_en: 'Coordinator of Cultural Activities',
-      subheading_hn: 'सांस्कृतिक गतिविधियों के समन्वयक',
-      small_text: 'The Coordinator of Cultural Activities manages and promotes cultural events and festivals within the institution.',
-    },
-    {
-      heading_en: 'Technical Activities',
-      heading_hn: 'तकनीकी गतिविधियां',
-      subheading_en: 'Coordinator of Technical Activities',
-      subheading_hn: 'तकनीकी गतिविधियों के समन्वयक',
-      small_text: 'The Coordinator of Technical Activities organizes and encourages technical events and competitions for students.',
-    },
-  ];
-
   return (
-    <div className="bg-white min-h-screen">
-      
-      <div className="bg-white">
-        <div className="bg-white relative flex flex-col pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-red-800 mb-4 animate-fade-in">
-              {heading ? (language === 'en' ? heading.title_en : heading.title_hn) : (language === 'en' ? 'Faculty Activities' : 'संकाय गतिविधियां')}
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              {heading ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'Empowering our faculty and students through diverse academic and administrative responsibilities.' : 'विविध शैक्षणिक और प्रशासनिक जिम्मेदारियों के माध्यम से हमारे संकाय और छात्रों को सशक्त बनाना।')}
+    <div className="min-h-screen bg-[#f8f9fa] font-sans pb-24">
+      {/* Breadcrumb */}
+      <div className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'संकाय अनुभाग' : 'Faculty Section'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'गतिविधियां' : 'Activities'}
+          </span>
+        </div>
+      </div>
+
+      {/* Main Container */}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        {/* Page Title */}
+        <div className="text-center space-y-2 border-b border-gray-200 pb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#631012] tracking-tight uppercase">
+            {isHindi ? heading.title_hn || heading.title_en : heading.title_en}
+          </h1>
+          {heading.sub_title_en && (
+            <p className="text-sm sm:text-base text-gray-700 max-w-4xl mx-auto font-medium leading-relaxed pt-2">
+              {isHindi ? heading.sub_title_hn || heading.sub_title_en : heading.sub_title_en}
             </p>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-300 rounded">
+            <Loader2 className="w-7 h-7 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading activities & responsibilities...</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
-            {activitiesData.map((activity, index) => (
+        ) : (
+          <div className="space-y-4">
+            {subtexts.map((item, index) => (
               <div
-                key={index}
-                className="group relative bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden"
+                key={item.id || index}
+                className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex items-start gap-4 group"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-500 opacity-50" />
+                {/* Number Badge */}
+                <div className="w-9 h-9 rounded-lg bg-[#631012]/10 text-[#631012] font-bold text-sm flex items-center justify-center shrink-0 group-hover:bg-[#631012] group-hover:text-white transition-colors">
+                  {index + 1}
+                </div>
 
-                <h3 className="text-2xl font-bold text-gray-900 mb-3 relative z-10">
-                  {language === 'en' ? activity.heading_en : activity.heading_hn}
-                </h3>
-                
-                {(() => {
-                  const subheading = language === 'en' ? activity.subheading_en : activity.subheading_hn;
-                  if (!subheading) return null;
-                  const bulletPoints = subheading
-                    .split(/[,;\n]+/)
-                    .map((item: string) => item.trim())
-                    .filter((item: string) => item.length > 0);
-
-                  if (bulletPoints.length === 0) return null;
-
-                  return (
-                    <ul className="list-disc pl-5 text-red-700 font-semibold mb-4 text-sm uppercase tracking-wider relative z-10 space-y-1">
-                      {bulletPoints.map((point: string, idx: number) => (
-                        <li key={idx}>{point}</li>
-                      ))}
-                    </ul>
-                  );
-                })()}
-
-                <p className="text-gray-600 leading-relaxed mb-6 line-clamp-3 group-hover:line-clamp-none transition-all duration-300 relative z-10">
-                  {language === 'en' ? activity.small_text : (activity.small_text_hn || activity.small_text)}
-                </p>
+                {/* Text Content */}
+                <div className="space-y-1.5 flex-1 pt-0.5">
+                  <p className="text-sm sm:text-base font-semibold text-gray-800 leading-relaxed">
+                    {isHindi && item.heading_hn ? item.heading_hn : item.small_text || item.heading_en}
+                  </p>
+                  {isHindi && item.small_text && item.heading_hn && (
+                    <p className="text-xs text-gray-500 font-mono">
+                      {item.small_text}
+                    </p>
+                  )}
+                  {item.subheading_en && (
+                    <div className="text-[11px] font-mono text-[#631012] font-semibold">
+                      {item.subheading_en}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
-      
+        )}
+      </main>
     </div>
   );
 }

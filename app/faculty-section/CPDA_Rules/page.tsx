@@ -1,148 +1,188 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/app/store';
+import { RootState } from '../../redux/store';
+import { ChevronRight, FileText, ExternalLink, Loader2 } from 'lucide-react';
 
-
-import { FileText, Download, FileType } from 'lucide-react';
-
-interface Rule {
+interface CpdaRule {
   id: number;
+  sl_no: string;
   particulars_en: string;
   particulars_hn: string;
   pdf_url: string;
   word_url: string;
 }
 
-const INITIAL_RULES: Rule[] = [
+interface HeadingData {
+  title_en: string;
+  title_hn: string;
+  sub_title_en: string;
+  sub_title_hn: string;
+}
+
+const FALLBACK_HEADING: HeadingData = {
+  title_en: 'CUMULATIVE PROFESSIONAL DEVELOPMENT ALLOWANCE (CPDA) RULES W.E.F. 1st APRIL, 2021 to 31st MARCH, 2024',
+  title_hn: 'संचयी व्यावसायिक विकास भत्ता (सीपीडीए) नियम - 1 अप्रैल 2021 से 31 मार्च 2024 तक लागू',
+  sub_title_en: 'Guidelines, notifications, and office orders for the grant and utilization of CPDA for faculty members.',
+  sub_title_hn: 'संकाय सदस्यों के लिए सीपीडीए के अनुदान और उपयोग के लिए दिशानिर्देश, अधिसूचनाएं और कार्यालय आदेश।',
+};
+
+const FALLBACK_RULES: CpdaRule[] = [
   {
-    id: -1,
-    particulars_en: 'CUMULATIVE PROFESSIONAL DEVELOPMENT ALLOWANCE (CPDA) RULES W.E.F. 1st APRIL, 2021 to 31st MARCH, 2024',
-    particulars_hn: '1 अप्रैल, 2021 से 31 मार्च, 2024 तक संचयी व्यावसायिक विकास भत्ता (सीपीडीए) नियम',
-    pdf_url: '/documents/cpda-rules.pdf',
-    word_url: '/documents/cpda-rules.docx',
-  }
+    id: 1,
+    sl_no: '1',
+    particulars_en: 'Office order regarding CPDA dated 13-03-2023',
+    particulars_hn: 'सीपीडीए के संबंध में कार्यालय आदेश दिनांक 13-03-2023',
+    pdf_url: 'https://nith.ac.in/uploads/topics/16788582293888.pdf',
+    word_url: '#',
+  },
+  {
+    id: 2,
+    sl_no: '2',
+    particulars_en: 'Office order regarding CPDA',
+    particulars_hn: 'सीपीडीए के संबंध में कार्यालय आदेश',
+    pdf_url: 'https://nith.ac.in/uploads/topics/16578687799757.pdf',
+    word_url: '#',
+  },
+  {
+    id: 3,
+    sl_no: '3',
+    particulars_en: 'Notification regarding CPDA',
+    particulars_hn: 'सीपीडीए के संबंध में अधिसूचना',
+    pdf_url: 'https://nith.ac.in/uploads/topics/16321287955523.pdf',
+    word_url: '#',
+  },
 ];
 
-export default function CPDARules() {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+export default function CpdaRulesPage() {
   const language = useSelector((state: RootState) => state.language.value);
-  const [rules, setRules] = useState<Rule[]>([]);
-  const [heading, setHeading] = useState<any>(null);
+  const isHindi = language === 'hi';
+
+  const [heading, setHeading] = useState<HeadingData>(FALLBACK_HEADING);
+  const [rules, setRules] = useState<CpdaRule[]>(FALLBACK_RULES);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const hRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-cpda`, { cache: 'no-store' });
-        const hData = await hRes.json();
-        setHeading(hData);
 
-        const lRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-cpda/list`, { cache: 'no-store' });
-        const lData = await lRes.json();
-        
-        if (Array.isArray(lData) && lData.length > 0) {
-          setRules(lData);
-        } else {
-          setRules(INITIAL_RULES);
+        // Fetch heading
+        const hRes = await fetch(`${API_BASE}/api/faculty-cpda`, { cache: 'no-store' });
+        if (hRes.ok) {
+          const hData = await hRes.json();
+          if (!cancelled && hData && hData.title_en) setHeading(hData);
+        }
+
+        // Fetch list
+        const lRes = await fetch(`${API_BASE}/api/faculty-cpda/list`, { cache: 'no-store' });
+        if (lRes.ok) {
+          const lData = await lRes.json();
+          if (!cancelled && Array.isArray(lData) && lData.length > 0) {
+            setRules(lData);
+          }
         }
       } catch (err) {
         console.error('Error fetching CPDA rules:', err);
-        setRules(INITIAL_RULES);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
+
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
-    <>
-      
-      <div className="min-h-screen bg-gray-50 pb-20">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-[#631012] via-[#7a1a1d] to-[#4a0c0e] py-16 md:py-24 text-center shadow-inner">
-          <div className="max-w-7xl mx-auto px-6">
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-6xl font-bold text-white mb-6"
-            >
-              {heading && heading.title_en ? (language === 'en' ? heading.title_en : heading.title_hn) : (language === 'en' ? 'CPDA Rules' : 'सीपीडीए नियम')}
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto font-light leading-relaxed"
-            >
-              {heading && heading.sub_title_en ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'CUMULATIVE PROFESSIONAL DEVELOPMENT ALLOWANCE RULES' : 'संचयी व्यावसायिक विकास भत्ता नियम')}
-            </motion.p>
+    <div className="min-h-screen bg-[#f8f9fa] font-sans pb-24">
+      {/* Breadcrumb Navigation */}
+      <div className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'संकाय अनुभाग' : 'Faculty Section'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'सीपीडीए नियम' : 'CPDA Rules'}
+          </span>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        {/* Page Title (Centered as in Screenshot) */}
+        <div className="text-center space-y-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#631012] tracking-tight max-w-4xl mx-auto uppercase">
+            {isHindi ? heading.title_hn || heading.title_en : heading.title_en}
+          </h1>
+          {heading.sub_title_en && (
+            <p className="text-xs sm:text-sm text-gray-600 max-w-3xl mx-auto">
+              {isHindi ? heading.sub_title_hn || heading.sub_title_en : heading.sub_title_en}
+            </p>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-300 rounded">
+            <Loader2 className="w-7 h-7 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading CPDA rules...</p>
           </div>
-        </section>
-
-        {/* Main Content */}
-        <section className="py-12 md:py-16 px-4 md:px-6 -mt-10">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
-              {/* Header Grid */}
-              <div className="grid grid-cols-[80px_1fr_200px] gap-4 bg-gray-900 p-6 text-xs md:text-sm font-bold text-white uppercase tracking-widest">
-                <div className="text-center">S.No</div>
-                <div>Particulars</div>
-                <div className="text-center">Downloads</div>
-              </div>
-
-              {/* Data Rows */}
-              <div className="divide-y divide-gray-100">
-                {loading ? (
-                    <div className="p-20 text-center text-gray-400">Loading rules...</div>
-                ) : rules.length > 0 ? (
-                    rules.map((rule, idx) => (
-                        <motion.div 
-                            key={rule.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="grid grid-cols-[80px_1fr_200px] gap-4 p-6 hover:bg-gray-50 items-center transition-colors group"
-                        >
-                            <div className="text-center font-mono text-gray-400 group-hover:text-[#631012] font-bold">
-                                {String(idx + 1).padStart(2, '0')}
-                            </div>
-                            <div className="text-gray-700 text-sm md:text-base leading-relaxed font-medium">
-                                {language === 'en' ? rule.particulars_en : rule.particulars_hn}
-                            </div>
-                            <div className="flex justify-center gap-4">
-                                {rule.pdf_url && (
-                                    <a 
-                                        href={rule.pdf_url}
-                                        className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg text-xs font-bold hover:bg-red-700 hover:text-white transition-all shadow-sm"
-                                    >
-                                        <FileType size={14} /> PDF
-                                    </a>
-                                )}
-                                {rule.word_url && (
-                                    <a 
-                                        href={rule.word_url}
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-700 hover:text-white transition-all shadow-sm"
-                                    >
-                                        <FileType size={14} /> WORD
-                                    </a>
-                                )}
-                            </div>
-                        </motion.div>
-                    ))
-                ) : (
-                    <div className="p-20 text-center text-gray-400">No CPDA rules found.</div>
-                )}
-              </div>
+        ) : (
+          <div className="bg-white border border-gray-300 shadow-sm overflow-hidden">
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm border-collapse">
+                {/* Deep Maroon Table Header */}
+                <thead>
+                  <tr className="bg-[#631012] text-white font-bold text-xs uppercase tracking-wider">
+                    <th className="py-3 px-6">
+                      {isHindi ? 'विवरण' : 'Particulars'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 text-gray-800">
+                  {rules.map((item, index) => (
+                    <tr
+                      key={item.id || index}
+                      className="hover:bg-red-50/30 transition-colors"
+                    >
+                      <td className="py-3.5 px-6">
+                        {item.pdf_url && item.pdf_url !== '#' ? (
+                          <a
+                            href={item.pdf_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#631012] hover:text-[#500c0e] hover:underline font-medium inline-flex items-center gap-2 group"
+                          >
+                            <span>
+                              {isHindi ? item.particulars_hn || item.particulars_en : item.particulars_en}
+                            </span>
+                            <ExternalLink size={13} className="text-[#631012]/60 group-hover:text-[#631012]" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-800 font-medium">
+                            {isHindi ? item.particulars_hn || item.particulars_en : item.particulars_en}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        </section>
-      </div>
-      
-    </>
+        )}
+      </main>
+    </div>
   );
 }

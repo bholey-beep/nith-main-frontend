@@ -1,351 +1,297 @@
 'use client';
 
-
-
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/app/store';
+import { RootState } from '../../redux/store';
+import { ChevronRight, Mail, Phone, Loader2 } from 'lucide-react';
 
-const CATEGORIES = [
-  'All Categories',
-  'Academics',
-  'Student Welfare',
-  'Faculty Welfare',
-  'Cultural Activities',
-  'Technical Activities',
-] as const;
-
-type Category = (typeof CATEGORIES)[number];
-
-type RoleType =
-  | 'Dean'
-  | 'Sub-Dean'
-  | 'Associate Dean'
-  | 'Coordinator'
-  | 'Other';
-
-type Role = {
-  id: string;
-  category: Exclude<Category, 'All Categories'>;
-  roleType: RoleType;
-  name: string;
-  designation: string;
+interface FacultyFunctionary {
+  id: number;
+  faculty_id?: number | null;
+  category_en: string;
+  category_hn: string;
+  category_description_en?: string;
+  category_description_hn?: string;
+  sl_no: string;
+  role_en: string;
+  role_hn: string;
+  name_en: string;
+  name_hn: string;
+  department_en?: string;
+  department_hn?: string;
+  phone: string;
   email: string;
-  facultyId: string;
-  since: string;
+  since_date_en?: string;
+  since_date_hn?: string;
+}
+
+interface HeadingData {
+  title_en: string;
+  title_hn: string;
+  sub_title_en: string;
+  sub_title_hn: string;
+}
+
+const FALLBACK_HEADING: HeadingData = {
+  title_en: 'Functionaries (Faculty Welfare)',
+  title_hn: 'पदाधिकारी (संकाय कल्याण)',
+  sub_title_en: 'Key functionaries, officers, and administrative staff supporting faculty welfare, activities, and development at NIT Hamirpur.',
+  sub_title_hn: 'एनआईटी हमीरपुर में संकाय कल्याण, गतिविधियों और विकास का समर्थन करने वाले प्रमुख पदाधिकारी, अधिकारी और प्रशासनिक कर्मचारी।',
 };
 
-const INITIAL_ROLES: Role[] = [
+const FALLBACK_FUNCTIONARIES: FacultyFunctionary[] = [
   {
-    id: '1',
-    category: 'Academics',
-    roleType: 'Dean',
-    name: 'Dr. Rohan Mehta',
-    designation: 'Mechanical Engineering',
-    email: 'dean.academics@nitth.ac.in',
-    facultyId: 'FI03',
-    since: 'Since August 15, 2023',
+    id: 1,
+    sl_no: '1',
+    category_en: 'Dean and Associate Deans',
+    category_hn: 'डीन और एसोसिएट डीन',
+    name_en: 'Prof. Sushil Chauhan',
+    name_hn: 'प्रो. सुशील चौहान',
+    role_en: 'Dean (Faculty Welfare)',
+    role_hn: 'डीन (संकाय कल्याण)',
+    phone: '254009',
+    email: 'dfw@nith.ac.in',
   },
   {
-    id: '2',
-    category: 'Academics',
-    roleType: 'Associate Dean',
-    name: 'Dr. Anjali Sharma',
-    designation: 'Computer Science Engineering',
-    email: 'ad.academics@nitth.ac.in',
-    facultyId: 'FI04',
-    since: 'Since August 15, 2023',
+    id: 2,
+    sl_no: '2',
+    category_en: 'Dean and Associate Deans',
+    category_hn: 'डीन और एसोसिएट डीन',
+    name_en: 'Dr. Subhash Chand',
+    name_hn: 'डॉ. सुभाष चंद',
+    role_en: 'Associate Dean (Faculty Recruitment & Discipline)',
+    role_hn: 'एसोसिएट डीन (संकाय भर्ती एवं अनुशासन)',
+    phone: '254136',
+    email: 'schand@nith.ac.in',
   },
   {
-    id: '3',
-    category: 'Student Welfare',
-    roleType: 'Dean',
-    name: 'Dr. Neeraj Gupta',
-    designation: 'Electrical Engineering',
-    email: 'dean.sw@nitth.ac.in',
-    facultyId: 'SW01',
-    since: 'Since July 10, 2022',
+    id: 3,
+    sl_no: '3',
+    category_en: 'Dean and Associate Deans',
+    category_hn: 'डीन और एसोसिएट डीन',
+    name_en: 'Dr. Naveen Chauhan',
+    name_hn: 'डॉ. नवीन चौहान',
+    role_en: 'Associate Dean (Faculty Activity & Support)',
+    role_hn: 'एसोसिएट डीन (संकाय गतिविधि एवं सहायता)',
+    phone: '254432',
+    email: 'naveen@nith.ac.in',
   },
   {
-    id: '4',
-    category: 'Student Welfare',
-    roleType: 'Associate Dean',
-    name: 'Dr. Priya Verma',
-    designation: 'Civil Engineering',
-    email: 'ad.sw@nitth.ac.in',
-    facultyId: 'SW02',
-    since: 'Since July 10, 2022',
-  },
-  {
-    id: '5',
-    category: 'Faculty Welfare',
-    roleType: 'Dean',
-    name: 'Dr. Sushil Chauhan',
-    designation: 'Faculty Welfare Office',
-    email: 'dean.fw@nitth.ac.in',
-    facultyId: 'FW01',
-    since: 'Since January 01, 2024',
-  },
-  {
-    id: '6',
-    category: 'Faculty Welfare',
-    roleType: 'Associate Dean',
-    name: 'Dr. Naveen Chauhan',
-    designation: 'Faculty Activity & Support',
-    email: 'ad.fw@nitth.ac.in',
-    facultyId: 'FW02',
-    since: 'Since January 01, 2024',
-  },
-  {
-    id: '7',
-    category: 'Cultural Activities',
-    roleType: 'Coordinator',
-    name: 'Dr. Neetu Kapoor',
-    designation: 'Faculty Incharge (Cultural Activities)',
-    email: 'culture@nitth.ac.in',
-    facultyId: 'CA01',
-    since: 'Since March 01, 2023',
-  },
-  {
-    id: '8',
-    category: 'Cultural Activities',
-    roleType: 'Coordinator',
-    name: 'Dr. Arjun Rao',
-    designation: 'Humanities & Social Sciences',
-    email: 'culture2@nitth.ac.in',
-    facultyId: 'CA02',
-    since: 'Since March 01, 2023',
-  },
-  {
-    id: '9',
-    category: 'Technical Activities',
-    roleType: 'Coordinator',
-    name: 'Dr. Mehak Bansal',
-    designation: 'Computer Science & Engineering',
-    email: 'technical@nitth.ac.in',
-    facultyId: 'TA01',
-    since: 'Since November 01, 2022',
-  },
-  {
-    id: '10',
-    category: 'Technical Activities',
-    roleType: 'Coordinator',
-    name: 'Dr. Vivek Sharma',
-    designation: 'Electronics & Communication',
-    email: 'technical2@nitth.ac.in',
-    facultyId: 'TA02',
-    since: 'Since November 01, 2022',
+    id: 4,
+    sl_no: '1',
+    category_en: 'Section Staff',
+    category_hn: 'अनुभाग कर्मचारी',
+    name_en: 'Sh. Gaurav Kumar Sharma',
+    name_hn: 'श्री गौरव कुमार शर्मा',
+    role_en: 'Assistant Registrar (Faculty Welfare)',
+    role_hn: 'सहायक कुलसचिव (संकाय कल्याण)',
+    phone: '--',
+    email: '--',
   },
 ];
 
-type CategorySectionProps = {
-  label: Exclude<Category, 'All Categories'>;
-  roles: Role[];
-};
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-function CategorySection({ label, roles }: CategorySectionProps) {
-  if (roles.length === 0) return null;
-
-  return (
-    <section className="mx-auto mt-6 max-w-6xl overflow-hidden rounded-md">
-      <div className="bg-[#7c1717] px-6 py-4 text-white">
-        <h2 className="text-[16px] font-semibold">{label}</h2>
-        <p className="mt-1 text-[12px] text-[#f0dede]">
-          Faculty members entrusted with {label.toLowerCase()} responsibilities.
-        </p>
-      </div>
-
-      <div className="bg-[#f9f7f6] px-6 py-5">
-        <div className="grid gap-5 md:grid-cols-2">
-          {roles.map((role) => (
-            <article
-              key={role.id}
-              className="flex h-full flex-col justify-between rounded-md border border-gray-200 bg-white px-4 py-4 shadow-sm"
-            >
-              <div>
-                <span className="inline-flex rounded-full bg-[#f2d9d9] px-3 py-[2px] text-[11px] font-semibold text-[#7c1717]">
-                  {role.roleType}
-                </span>
-
-                <h3 className="mt-3 text-[15px] font-semibold text-gray-900">
-                  {role.name}
-                </h3>
-                <p className="text-[12px] text-gray-600">{role.designation}</p>
-              </div>
-
-              <div className="mt-4 space-y-1 text-[12px] text-gray-600">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Email:</span>
-                  <a
-                    href={`mailto:${role.email}`}
-                    className="text-[#7c1717] hover:underline"
-                  >
-                    {role.email}
-                  </a>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Faculty ID:</span>
-                  <span>{role.facultyId}</span>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <div className="rounded-md bg-[#f3f3f3] px-3 py-2 text-[11px] text-gray-600">
-                  {role.since}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export default function FacultyRolesPage() {
+export default function FacultyFunctionariesPage() {
   const language = useSelector((state: RootState) => state.language.value);
-  const [activeCategory, setActiveCategory] = useState<Category>('All Categories');
-  
-  const [heading, setHeading] = useState<any>(null);
-  const [dbRoles, setDbRoles] = useState<any[]>([]);
+  const isHindi = language === 'hi';
+
+  const [heading, setHeading] = useState<HeadingData>(FALLBACK_HEADING);
+  const [functionaries, setFunctionaries] = useState<FacultyFunctionary[]>(FALLBACK_FUNCTIONARIES);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchHeading = async () => {
-      try {
-        const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-functionaries`, { cache: 'no-store' });
-        const res = await data.json();
-        setHeading(res);
-      } catch (err) {
-        console.error('Fetch heading failed:', err);
-      }
-    };
+    let cancelled = false;
 
-    const fetchRoles = async () => {
+    const fetchData = async () => {
       try {
-        const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')}/api/faculty-functionaries/list`, { cache: 'no-store' });
-        const res = await data.json();
-        if (Array.isArray(res)) {
-          setDbRoles(res);
+        setLoading(true);
+
+        // Fetch heading
+        const hRes = await fetch(`${API_BASE}/api/faculty-functionaries`, { cache: 'no-store' });
+        if (hRes.ok) {
+          const hData = await hRes.json();
+          if (!cancelled && hData && hData.title_en) setHeading(hData);
+        }
+
+        // Fetch list
+        const lRes = await fetch(`${API_BASE}/api/faculty-functionaries/list`, { cache: 'no-store' });
+        if (lRes.ok) {
+          const lData = await lRes.json();
+          if (!cancelled && Array.isArray(lData) && lData.length > 0) {
+            setFunctionaries(lData);
+          }
         }
       } catch (err) {
-        console.error('Fetch roles failed:', err);
+        console.error('Error fetching faculty functionaries:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchHeading();
-    fetchRoles();
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Map DB roles to the format expected by the UI
-  const dbRolesMapped: Role[] = dbRoles.map((r: any) => ({
-    id: String(r.id),
-    category: (language === 'en' ? r.category_en : r.category_hn) as any,
-    roleType: (language === 'en' ? r.role_en : r.role_hn) as any,
-    name: language === 'en' ? r.name_en : r.name_hn,
-    designation: language === 'en' ? r.department_en : r.department_hn,
-    email: r.email,
-    facultyId: r.faculty_id,
-    since: language === 'en' ? `Since ${r.since_date_en}` : `${r.since_date_hn} से`,
-  }));
-
-  const displayRoles: Role[] = [...dbRolesMapped];
-  INITIAL_ROLES.forEach(def => {
-    if (!displayRoles.find(r => r.email === def.email)) {
-        displayRoles.push(def);
-    }
-  });
-
-  const filteredRoles =
-    activeCategory === 'All Categories'
-      ? displayRoles
-      : displayRoles.filter((r) => {
-          const dbItem = dbRoles.find(dr => String(dr.id) === r.id);
-          if (dbItem) {
-            return dbItem.category_en === activeCategory;
-          }
-          return r.category === activeCategory;
-        });
+  // Distinct categories preserving order
+  const categories = Array.from(
+    new Set(functionaries.map((item) => item.category_en || 'Dean and Associate Deans'))
+  );
 
   return (
-    <>
-      
+    <div className="min-h-screen bg-[#f8f9fa] font-sans pb-24">
+      {/* Breadcrumb Navigation */}
+      <div className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'संकाय अनुभाग' : 'Faculty Section'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'पदाधिकारी' : 'Functionaries'}
+          </span>
+        </div>
+      </div>
 
-      <main className="min-h-screen bg-[#f4f2f1] px-8 py-10 text-[13px] text-gray-800">
-        <header className="mx-auto mb-6 max-w-6xl text-center">
-          <h1 className="text-[26px] font-semibold tracking-[0.18em] text-[#6b1a1a] uppercase">
-            {heading ? (language === 'en' ? heading.title_en : heading.title_hn) : (language === 'en' ? 'FACULTY ROLE ASSIGNMENTS' : 'संकाय भूमिका असाइनमेंट')}
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        {/* Page Title (Centered as in Screenshot) */}
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#631012] tracking-tight">
+            {isHindi ? heading.title_hn || heading.title_en : heading.title_en}
           </h1>
-          <p className="mt-2 text-[12px] text-gray-600">
-            {heading ? (language === 'en' ? heading.sub_title_en : heading.sub_title_hn) : (language === 'en' ? 'Dedicated faculty members serving in various administrative and functional roles across the institute.' : 'संस्थान भर में विभिन्न प्रशासनिक और कार्यात्मक भूमिकाओं में सेवारत समर्पित संकाय सदस्य।')}
-          </p>
-        </header>
+          {heading.sub_title_en && (
+            <p className="text-xs sm:text-sm text-gray-600 max-w-3xl mx-auto">
+              {isHindi ? heading.sub_title_hn || heading.sub_title_en : heading.sub_title_en}
+            </p>
+          )}
+        </div>
 
-        <section className="mx-auto mb-8 max-w-6xl rounded-md bg-white px-6 py-4 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-gray-800">
-              {language === 'en' ? 'Filter by Category' : 'श्रेणी के अनुसार फिल्टर करें'}
-            </span>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-300 rounded">
+            <Loader2 className="w-7 h-7 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading functionaries...</p>
           </div>
+        ) : (
+          <div className="space-y-8">
+            {categories.map((catName) => {
+              const members = functionaries.filter(
+                (item) => (item.category_en || 'Dean and Associate Deans') === catName
+              );
+              const catHindi = members[0]?.category_hn || catName;
 
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => {
-              const active = cat === activeCategory;
               return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={[
-                    'rounded-md border px-4 py-1 text-[12px] font-medium transition',
-                    active
-                      ? 'border-[#7c1717] bg-[#7c1717] text-white'
-                      : 'border-gray-200 bg-[#f9f7f6] text-gray-700 hover:bg-gray-100',
-                  ].join(' ')}
+                <div
+                  key={catName}
+                  className="bg-white border border-gray-300 shadow-sm overflow-hidden"
                 >
-                  {language === 'en' ? cat : (
-                    cat === 'All Categories' ? 'सभी श्रेणियां' :
-                    cat === 'Academics' ? 'अकादमिक' :
-                    cat === 'Student Welfare' ? 'छात्र कल्याण' :
-                    cat === 'Faculty Welfare' ? 'संकाय कल्याण' :
-                    cat === 'Cultural Activities' ? 'सांस्कृतिक गतिविधियां' :
-                    cat === 'Technical Activities' ? 'तकनीकी गतिविधियां' : cat
-                  )}
-                </button>
+                  {/* Section Title Banner */}
+                  <div className="bg-[#fcf5f5] border-b border-gray-300 border-l-4 border-l-[#631012] px-6 py-3 text-center">
+                    <h2 className="text-sm sm:text-base font-bold text-[#631012] tracking-wide">
+                      {isHindi ? catHindi : catName}
+                    </h2>
+                  </div>
+
+                  {/* Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs sm:text-sm border-collapse">
+                      {/* Deep Maroon Table Header */}
+                      <thead>
+                        <tr className="bg-[#631012] text-white font-bold text-xs uppercase tracking-wider">
+                          <th className="py-3 px-4 border-r border-[#7a1a1d] w-16 text-center">
+                            Sl. No.
+                          </th>
+                          <th className="py-3 px-6 border-r border-[#7a1a1d] min-w-[200px]">
+                            {isHindi ? 'नाम' : 'Name'}
+                          </th>
+                          <th className="py-3 px-6 border-r border-[#7a1a1d] min-w-[260px]">
+                            {isHindi ? 'दायित्व / पद' : 'Responsibility'}
+                          </th>
+                          <th className="py-3 px-6 border-r border-[#7a1a1d] w-36">
+                            {isHindi ? 'फोन नंबर' : 'Phone No.'}
+                          </th>
+                          <th className="py-3 px-6 min-w-[220px]">
+                            {isHindi ? 'ईमेल' : 'Email'}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 text-gray-800">
+                        {members.map((item, index) => (
+                          <tr
+                            key={item.id || index}
+                            className="hover:bg-red-50/40 transition-colors"
+                          >
+                            {/* Sl. No. */}
+                            <td className="py-3.5 px-4 text-center font-mono font-bold text-gray-700 border-r border-gray-200 align-middle">
+                              {item.sl_no || index + 1}
+                            </td>
+
+                            {/* Name */}
+                            <td className="py-3.5 px-6 font-semibold text-gray-900 border-r border-gray-200 align-middle">
+                              <div>
+                                {isHindi
+                                  ? item.name_hn || item.name_en
+                                  : item.name_en}
+                              </div>
+                              {item.department_en && (
+                                <div className="text-xs text-gray-500 font-normal mt-0.5">
+                                  {isHindi ? item.department_hn || item.department_en : item.department_en}
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Responsibility */}
+                            <td className="py-3.5 px-6 text-gray-800 border-r border-gray-200 align-middle leading-snug font-medium">
+                              {isHindi
+                                ? item.role_hn || item.role_en || '--'
+                                : item.role_en || '--'}
+                            </td>
+
+                            {/* Phone No. */}
+                            <td className="py-3.5 px-6 font-mono text-gray-800 border-r border-gray-200 align-middle whitespace-nowrap">
+                              {item.phone && item.phone !== '--' ? (
+                                <a
+                                  href={`tel:${item.phone}`}
+                                  className="inline-flex items-center gap-1.5 hover:text-[#631012] hover:underline"
+                                >
+                                  <Phone size={13} className="text-[#631012]" />
+                                  <span>{item.phone}</span>
+                                </a>
+                              ) : (
+                                <span className="text-gray-400">--</span>
+                              )}
+                            </td>
+
+                            {/* Email */}
+                            <td className="py-3.5 px-6 font-mono text-xs text-gray-800 align-middle">
+                              {item.email && item.email !== '--' ? (
+                                <a
+                                  href={`mailto:${item.email}`}
+                                  className="inline-flex items-center gap-1.5 text-[#631012] hover:underline font-semibold"
+                                >
+                                  <Mail size={13} className="text-[#631012]" />
+                                  <span>{item.email}</span>
+                                </a>
+                              ) : (
+                                <span className="text-gray-400">--</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               );
             })}
           </div>
-        </section>
-
-        {(
-          [
-            'Academics',
-            'Student Welfare',
-            'Faculty Welfare',
-            'Cultural Activities',
-            'Technical Activities',
-          ] as Exclude<Category, 'All Categories'>[]
-        ).map((cat) => {
-            const rolesForCat = filteredRoles.filter((r) => {
-                const dbItem = dbRoles.find(dr => String(dr.id) === r.id);
-                if (dbItem) return dbItem.category_en === cat;
-                return r.category === cat;
-            });
-            return (
-                <CategorySection
-                    key={cat}
-                    label={language === 'en' ? cat : (
-                        cat === 'Academics' ? 'अकादमिक' :
-                        cat === 'Student Welfare' ? 'छात्र कल्याण' :
-                        cat === 'Faculty Welfare' ? 'संकाय कल्याण' :
-                        cat === 'Cultural Activities' ? 'सांस्कृतिक गतिविधियां' :
-                        cat === 'Technical Activities' ? 'तकनीकी गतिविधियां' : cat
-                    ) as any}
-                    roles={rolesForCat}
-                />
-            );
-        })}
+        )}
       </main>
-
-      
-    </>
+    </div>
   );
 }
