@@ -14,6 +14,7 @@ interface AchievementItem {
   description_en: string;
   description_hi: string;
   image: string;
+  created_at?: string;
 }
 
 export default function AchievementDetail() {
