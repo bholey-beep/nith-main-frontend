@@ -9,8 +9,11 @@ interface AdmissionItem {
   id: number;
   title_en: string;
   title_hi: string;
+  date: string;
   description_en: string;
   description_hi: string;
+  category_en: string;
+  category_hi: string;
 }
 
 export default function AdmissionDetail() {
