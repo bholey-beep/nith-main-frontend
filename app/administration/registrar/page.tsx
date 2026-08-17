@@ -2,140 +2,121 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { ChevronRight, Loader2, Building } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
+interface RegistrarData {
+  id?: number;
+  image?: string;
+  heading_en?: string;
+  heading_hi?: string;
+  designation_en?: string;
+  designation_hi?: string;
+  description_en?: string;
+  description_hi?: string;
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export default function RegistrarPage() {
-  const language = useSelector((state: RootState) => state.language.value);
-  const [registrar, setRegistrar] = useState<any>(null);
+  const language = useSelector((state: RootState) => state.language?.value || 'en');
+  const isHindi = language === 'hi';
+
+  const [registrar, setRegistrar] = useState<RegistrarData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/v1/administration/registrar')
-      .then(res => res.json())
-      .then(json => {
-        if (json.success) setRegistrar(json.data);
+    fetch(`${API_BASE}/api/administration/registrar`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.registrar) setRegistrar(data.registrar);
         setLoading(false);
       })
-      .catch(err => {
-        console.error(err);
+      .catch((err) => {
+        console.error('Error:', err);
         setLoading(false);
       });
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
+  const name = isHindi
+    ? registrar?.heading_hi || registrar?.heading_en || 'डॉ. अर्चना संतोष नानोटी'
+    : registrar?.heading_en || 'Dr. Archana Santosh Nanoty';
+
+  const designation = isHindi
+    ? registrar?.designation_hi || registrar?.designation_en || 'कुलसचिव, एनआईटी हमीरपुर'
+    : registrar?.designation_en || 'Registrar, National Institute of Technology Hamirpur';
+
+  const description = isHindi
+    ? registrar?.description_hi || registrar?.description_en || ''
+    : registrar?.description_en || '';
+
+  const photo =
+    registrar?.image ||
+    'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80';
 
   return (
-    <div className="min-h-screen bg-gray-50 text-black">
-
-      <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link
-              href="/"
-              className="hover:text-[#800000] transition-colors duration-200"
-            >
-              {language == 'en' ? 'Home' : 'होम'}
-            </Link>
-            <span>›</span>
-            <span className="text-gray-400">
-              {language == 'en' ? 'Administration' : 'प्रशासन'}
-            </span>
-            <span>›</span>
-            <span className="text-[#800000] font-medium">
-              {language == 'en' ? 'Registrar' : 'रजिस्ट्रार'}
-            </span>
-          </nav>
+    <div className="min-h-screen bg-white font-sans pb-24">
+      {/* Breadcrumb */}
+      <div className="bg-gray-50 border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'प्रशासन' : 'Administration'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">{isHindi ? 'कुलसचिव' : 'Registrar'}</span>
         </div>
       </div>
 
-      <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-700" />
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+        <div className="flex justify-end">
+          <Link
+            href="/administration/registrar/office"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 hover:bg-[#631012] hover:text-white border border-gray-300 text-xs font-bold text-gray-700 transition-colors shadow-sm"
+          >
+            <Building size={14} />
+            <span>{isHindi ? 'कुलसचिव कार्यालय कर्मचारी' : "Registrar's Office Staff"}</span>
+          </Link>
         </div>
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
-        >
-          <h1 className="text-5xl md:text-6xl font-black text-white tracking-tight mb-4">
-            {language == 'en' ? 'Registrar' : 'रजिस्ट्रार'}
-          </h1>
-          <p className="text-white/90 max-w-3xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            {language == 'en'
-              ? 'Profile summary and contact details'
-              : 'प्रोफाइल सारांश और संपर्क विवरण'}
-          </p>
-        </motion.div>
-      </section>
-
-      <main className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white rounded-2xl shadow-lg overflow-hidden"
-        >
-          <div className="flex flex-col md:flex-row gap-8 p-8 md:p-12">
-            <div className="md:w-1/3 flex-shrink-0">
-              <div className="relative aspect-[3/4] bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
-                <Image
-                  src={registrar?.image || "/nith-registrar.jpg"}
-                  alt={registrar?.name || "Registrar"}
-                  width={280}
-                  height={360}
-                  className="object-cover w-full h-full"
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-200 rounded">
+            <Loader2 className="w-7 h-7 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading Registrar profile...</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-6 sm:p-8">
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="shrink-0 mx-auto md:mx-0">
+                <img
+                  src={photo}
+                  alt={name}
+                  className="w-52 h-64 sm:w-60 sm:h-72 object-cover rounded-xl border-2 border-gray-200 shadow-md"
                 />
               </div>
-              <div className="mt-4 text-center">
-                <h2 className="text-xl font-bold text-gray-900">
-                  {registrar?.name || 'Dr. Archana Santosh Nanoty'}
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  {language == 'en' ? 'Registrar' : 'रजिस्ट्रार'}
-                </p>
-                <div className="mt-3 space-y-1 text-sm text-gray-700">
-                  <p>
-                    {language == 'en' ? 'Email:' : 'ईमेल:'}{' '}
-                    <a
-                      className="text-[#631012] hover:underline"
-                      href={`mailto:${registrar?.email || 'registrar@nith.ac.in'}`}
-                    >
-                      {registrar?.email || 'registrar@nith.ac.in'}
-                    </a>
+
+              <div className="space-y-4 flex-grow">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-[#631012] tracking-tight">
+                    {name}
+                  </h1>
+                  <p className="text-sm sm:text-base font-semibold text-[#002b49] mt-1">
+                    {designation}
                   </p>
-                  <p>{language == 'en' ? 'Phone:' : 'फोन:'} {registrar?.phone || '01972-254010'}</p>
+                </div>
+
+                <div className="w-16 h-0.5 bg-[#631012] opacity-70" />
+
+                <div className="text-gray-700 text-sm sm:text-base leading-relaxed whitespace-pre-line space-y-3 font-sans">
+                  {description}
                 </div>
               </div>
             </div>
-
-            <div className="md:w-2/3">
-              <h3 className="text-2xl font-bold text-[#800000] mb-4 border-b-2 border-[#800000] pb-2 text-left">
-                {language == 'en' ? 'Profile Summary' : 'प्रोफाइल सारांश'}
-              </h3>
-              <div className="space-y-4 text-gray-700 leading-relaxed text-left">
-                {(language === 'en' ? registrar?.profile_summary_en : registrar?.profile_summary_hi)?.map((para: string, i: number) => (
-                  <p key={i}>{para}</p>
-                )) || (
-                  <p>Profile summary not available.</p>
-                )}
-              </div>
-            </div>
           </div>
-        </motion.div>
+        )}
       </main>
-
     </div>
   );
 }

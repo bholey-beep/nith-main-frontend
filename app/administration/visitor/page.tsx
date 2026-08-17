@@ -1,141 +1,112 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
-
-
+import { ChevronRight, Loader2, Landmark } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
-import { ArrowRight, ExternalLink } from 'lucide-react';
+import { RootState } from '../../redux/store';
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
+interface VisitorData {
+  id?: number;
+  image?: string;
+  heading_en?: string;
+  heading_hi?: string;
+  designation_en?: string;
+  designation_hi?: string;
+  description_en?: string;
+  description_hi?: string;
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export default function VisitorPage() {
-  const language = useSelector((state: RootState) => state.language.value);
-  const [visitors, setVisitors] = useState<any[]>([]);
-  const [info, setInfo] = useState<any>(null);
+  const language = useSelector((state: RootState) => state.language?.value || 'en');
+  const isHindi = language === 'hi';
+
+  const [visitor, setVisitor] = useState<VisitorData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [infoRes, listRes] = await Promise.all([
-          fetch('http://localhost:5000/api/v1/administration/visitors-info'),
-          fetch('http://localhost:5000/api/v1/administration/visitors')
-        ]);
-        const infoData = await infoRes.json();
-        const listData = await listRes.json();
-        
-        if (infoData.success) setInfo(infoData.data);
-        if (listData.success) setVisitors(listData.data);
+    fetch(`${API_BASE}/api/administration/visitor`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.heading_en) setVisitor(data);
         setLoading(false);
-      } catch (err) {
-        console.error(err);
+      })
+      .catch((err) => {
+        console.error('Error:', err);
         setLoading(false);
-      }
-    };
-    fetchData();
+      });
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
+  const name = isHindi
+    ? visitor?.heading_hi || visitor?.heading_en || 'श्रीमती द्रौपदी मुर्मु'
+    : visitor?.heading_en || 'Smt. Droupadi Murmu';
+
+  const designation = isHindi
+    ? visitor?.designation_hi || visitor?.designation_en || 'माननीय भारत की राष्ट्रपति एवं एनआईटी हमीरपुर की कुलाध्यक्ष'
+    : visitor?.designation_en || "Hon'ble President of India & Visitor of NIT Hamirpur";
+
+  const description = isHindi
+    ? visitor?.description_hi || visitor?.description_en || ''
+    : visitor?.description_en || '';
+
+  const photo =
+    visitor?.image ||
+    'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80';
 
   return (
-    <div className="min-h-screen bg-white text-black">
-      
-
-      <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto text-left">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600 font-medium">
-            <Link href="/" className="hover:text-[#800000] transition-colors duration-200">
-              {language === 'en' ? 'Home' : 'होम'}
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-400">{language === 'en' ? 'Administration' : 'प्रशासन'}</span>
-            <span className="text-gray-400">/</span>
-            <span className="text-[#800000] font-semibold">{language === 'en' ? 'Visitor' : 'आगंतुक'}</span>
-          </nav>
+    <div className="min-h-screen bg-white font-sans pb-24">
+      {/* Breadcrumb */}
+      <div className="bg-gray-50 border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'प्रशासन' : 'Administration'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">{isHindi ? 'कुलाध्यक्ष' : 'Visitor'}</span>
         </div>
       </div>
 
-      <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-        </div>
-
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
-        >
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6 uppercase">
-            {info?.hero_heading || (language === 'en' ? 'Visitor' : 'आगंतुक')}
-          </h1>
-          <p className="text-white/80 max-w-2xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            {info?.hero_subheading || (language === 'en' ? 'Official Visitor of the Institute' : 'संस्थान के आधिकारिक आगंतुक')}
-          </p>
-        </motion.div>
-      </section>
-
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto space-y-12 text-left">
-          {visitors.map((v, idx) => (
-            <motion.div
-              key={v.id || idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-[2.5rem] p-8 md:p-16 shadow-2xl shadow-gray-100 border border-gray-100 flex flex-col md:flex-row gap-12 items-center"
-            >
-              <div className="w-full md:w-1/3">
-                <div className="aspect-[3/4] bg-gray-50 rounded-3xl overflow-hidden relative shadow-inner group">
-                  <Image
-                    src={v.image || "/presidentimage.jpg"}
-                    alt={v.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#800000]/20 to-transparent"></div>
-                </div>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-200 rounded">
+            <Loader2 className="w-7 h-7 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading Visitor profile...</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-6 sm:p-8">
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="shrink-0 mx-auto md:mx-0">
+                <img
+                  src={photo}
+                  alt={name}
+                  className="w-52 h-64 sm:w-60 sm:h-72 object-cover rounded-xl border-2 border-gray-200 shadow-md"
+                />
               </div>
-              
-              <div className="w-full md:w-2/3 space-y-8">
+
+              <div className="space-y-4 flex-grow">
                 <div>
-                  <div className="inline-block px-4 py-1.5 bg-[#800000]/5 text-[#800000] text-sm font-bold rounded-full mb-4 uppercase tracking-widest">
-                    {v.title || 'Official Visitor'}
-                  </div>
-                  <h2 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight mb-6">
-                    {v.name}
-                  </h2>
-                  <div className="h-1.5 w-24 bg-[#800000] rounded-full mb-8"></div>
-                  <p className="text-xl md:text-2xl text-gray-600 leading-relaxed font-light italic">
-                    "{v.description}"
+                  <h1 className="text-2xl sm:text-3xl font-bold text-[#631012] tracking-tight">
+                    {name}
+                  </h1>
+                  <p className="text-sm sm:text-base font-semibold text-[#002b49] mt-1">
+                    {designation}
                   </p>
                 </div>
 
-                {v.website_url && (
-                  <Link
-                    href={v.website_url}
-                    target="_blank"
-                    className="inline-flex items-center gap-3 px-10 py-4 bg-gray-900 text-white font-bold rounded-2xl hover:bg-[#800000] transition-all duration-300 shadow-xl hover:shadow-[#800000]/20 group"
-                  >
-                    {v.website_label || 'Official Portal'}
-                    <ExternalLink className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                  </Link>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+                <div className="w-16 h-0.5 bg-[#631012] opacity-70" />
 
-      
+                <div className="text-gray-700 text-sm sm:text-base leading-relaxed whitespace-pre-line space-y-3 font-sans">
+                  {description}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

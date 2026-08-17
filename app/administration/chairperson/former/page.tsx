@@ -1,132 +1,104 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
+import { ChevronRight, Loader2 } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
-
-function ChairpersonGrid({ title, list }: { title: string; list: any[] }) {
-  if (list.length === 0) return null;
-  return (
-    <div className="mb-16 text-left">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 border-b-4 border-[#800000] w-fit pb-2">
-        {title}
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {list.map((item, idx) => (
-          <motion.article
-            key={item.id || idx}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-            className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all group"
-          >
-            <div className="w-full h-56 bg-gray-100 overflow-hidden relative">
-              <Image
-                src={item.image || "/images/former/default.jpg"}
-                alt={item.name}
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-            </div>
-            <div className="p-6">
-              <h4 className="text-xl font-bold text-gray-900 group-hover:text-[#800000] transition-colors">
-                {item.name}
-              </h4>
-              <p className="text-[#800000] font-bold mt-2 text-sm uppercase tracking-wider">{item.years}</p>
-              {item.note && (
-                <p className="text-sm text-gray-500 mt-3 italic border-t pt-3">
-                  {item.note}
-                </p>
-              )}
-            </div>
-          </motion.article>
-        ))}
-      </div>
-    </div>
-  );
+interface FormerChairperson {
+  id: number;
+  type: string;
+  heading_en: string;
+  heading_hi?: string;
+  dates: string;
+  image: string;
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 export default function FormerChairpersonsPage() {
-  const [list, setList] = useState<any[]>([]);
+  const language = useSelector((state: RootState) => state.language?.value || 'en');
+  const isHindi = language === 'hi';
+
+  const [formerList, setFormerList] = useState<FormerChairperson[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/v1/administration/former-chairpersons')
-      .then(res => res.json())
-      .then(json => {
-        if (json.success) setList(json.data);
+    fetch(`${API_BASE}/api/administration/chairperson`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.formerChairpersons) setFormerList(data.formerChairpersons);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         setLoading(false);
       });
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
-
-  const nitList = list.filter(c => c.category === 'NIT' || !c.category);
-  const recList = list.filter(c => c.category === 'REC');
-
   return (
-    <div className="min-h-screen bg-gray-50 text-black">
-      
-
-      <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link
-              href="/"
-              className="hover:text-[#800000] transition-colors duration-200"
-            >
-              Home
-            </Link>
-            <span>›</span>
-            <span className="text-gray-400">Administration</span>
-            <span>›</span>
-            <span className="text-[#800000] font-medium">
-              Former Chairpersons
-            </span>
-          </nav>
+    <div className="min-h-screen bg-white font-sans pb-24">
+      {/* Breadcrumb */}
+      <div className="bg-gray-50 border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'प्रशासन' : 'Administration'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <Link href="/administration/chairperson" className="text-gray-600 hover:text-[#631012]">
+            {isHindi ? 'अध्यक्ष' : 'Chairperson'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'पूर्व अध्यक्ष' : 'Former Chairpersons'}
+          </span>
         </div>
       </div>
 
-      <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-        </div>
-
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
-        >
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6 uppercase">
-            Former Chairpersons
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            {isHindi ? 'पूर्व अध्यक्ष, शासी मंडल' : 'Former Chairpersons, Board of Governors'}
           </h1>
-          <p className="text-white/80 max-w-3xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            Legacy of leadership at NIT Hamirpur and REC Hamirpur.
-          </p>
-        </motion.div>
-      </section>
-
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <ChairpersonGrid title="NIT Hamirpur Chairpersons" list={nitList} />
-          <ChairpersonGrid title="REC Hamirpur Chairpersons" list={recList} />
+          <div className="w-16 h-0.5 bg-[#631012] mx-auto opacity-70" />
         </div>
-      </section>
 
-      
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-7 h-7 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading Former Chairpersons...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 pt-4">
+            {formerList.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-col items-center text-center group bg-white"
+              >
+                <div className="w-36 h-44 sm:w-40 sm:h-48 overflow-hidden rounded border border-gray-300 shadow-sm bg-gray-100 flex items-center justify-center">
+                  <img
+                    src={
+                      item.image ||
+                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+                    }
+                    alt={item.heading_en}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="mt-3 space-y-1">
+                  <h3 className="font-bold text-xs sm:text-sm text-[#800000] border-b border-[#800000]/40 pb-0.5 inline-block">
+                    {isHindi ? item.heading_hi || item.heading_en : item.heading_en}
+                  </h3>
+                  <p className="text-[11px] text-gray-700 font-mono">{item.dates}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

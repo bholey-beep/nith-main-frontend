@@ -2,146 +2,125 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { ChevronRight, Loader2 } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
-
-function FIHeader() {
-  return (
-    <div className="bg-gradient-to-r from-[#800000] to-[#631012] rounded-t-2xl px-6 py-3 text-center">
-      <h2 className="text-xl font-semibold text-white">Faculty Incharges</h2>
-    </div>
-  );
+interface FacultyInchargeRecord {
+  id: number;
+  type: string;
+  sl_no: string;
+  name: string;
+  departments: string;
+  responsibility: string;
+  email: string;
 }
 
-function FITable({ rows }: { rows: any[] }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white rounded-b-2xl shadow-sm overflow-hidden"
-    >
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-gradient-to-r from-[#800000] to-[#631012] text-white">
-              <th className="px-6 py-4 text-sm font-semibold">Sn</th>
-              <th className="px-6 py-4 text-sm font-semibold">Name</th>
-              <th className="px-6 py-4 text-sm font-semibold">Department</th>
-              <th className="px-6 py-4 text-sm font-semibold">
-                Responsibility
-              </th>
-              <th className="px-6 py-4 text-sm font-semibold">Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, i) => (
-              <tr
-                key={row.id || i}
-                className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4 text-sm text-gray-900">{i + 1}</td>
-                <td className="px-6 py-4 text-sm text-gray-800 font-medium">
-                  {row.name}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {row.department}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {row.responsibility}
-                </td>
-                <td className="px-6 py-4 text-sm">
-                  <a
-                    href={`mailto:${row.email}`}
-                    className="text-[#631012] hover:underline"
-                  >
-                    {row.email}
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </motion.div>
-  );
-}
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export default function FacultyInchargesPage() {
-  const [list, setList] = useState<any[]>([]);
+  const language = useSelector((state: RootState) => state.language?.value || 'en');
+  const isHindi = language === 'hi';
+
+  const [list, setList] = useState<FacultyInchargeRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/v1/administration/faculty-incharges')
-      .then(res => res.json())
-      .then(json => {
-        if (json.success) setList(json.data);
+    fetch(`${API_BASE}/api/administration/faculty-incharges`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setList(data);
         setLoading(false);
       })
-      .catch(err => {
-        console.error(err);
+      .catch((err) => {
+        console.error('Error:', err);
         setLoading(false);
       });
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-bold">Loading...</div>;
-
   return (
-    <div className="min-h-screen bg-gray-50 text-black">
-      
-
-      <div className="bg-gray-50 py-4 px-6 md:px-12 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <nav className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link
-              href="/"
-              className="hover:text-[#800000] transition-colors duration-200"
-            >
-              Home
-            </Link>
-            <span>›</span>
-            <span className="text-gray-400">Administration</span>
-            <span>›</span>
-            <span className="text-[#800000] font-medium">
-              Faculty Incharges
-            </span>
-          </nav>
+    <div className="min-h-screen bg-white font-sans pb-24">
+      {/* Breadcrumb */}
+      <div className="bg-gray-50 border-b border-gray-200 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-gray-600 font-medium">
+          <Link href="/" className="hover:text-[#631012] transition-colors">
+            {isHindi ? 'होम' : 'Home'}
+          </Link>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-gray-400">{isHindi ? 'प्रशासन' : 'Administration'}</span>
+          <ChevronRight size={13} className="text-gray-400" />
+          <span className="text-[#631012] font-bold">
+            {isHindi ? 'संकाय प्रभारी' : 'Faculty In-Charge'}
+          </span>
         </div>
       </div>
 
-      <section className="relative bg-gradient-to-br from-[#800000] via-[#631012] to-[#8B1E1E] overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-700"></div>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            {isHindi ? 'संकाय प्रभारी' : 'Faculty In-Charge'}
+          </h1>
+          <div className="w-16 h-0.5 bg-[#631012] mx-auto opacity-70" />
         </div>
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-center py-24 md:py-32 px-6 md:px-12"
-        >
-          <h1 className="text-5xl md:text-6xl font-black text-white tracking-tight mb-4">
-            Faculty Incharges
-          </h1>
-          <p className="text-white/90 max-w-3xl mx-auto text-lg md:text-xl leading-relaxed font-light">
-            Roles and contacts.
-          </p>
-        </motion.div>
-      </section>
-
-      <main className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16">
-        <FIHeader />
-        <FITable rows={list} />
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-200 rounded">
+            <Loader2 className="w-7 h-7 animate-spin text-[#631012] mb-2" />
+            <p className="text-xs font-mono text-gray-500">Loading Faculty In-Charges...</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+            <div className="bg-[#e9f2f8] border-b border-gray-300 px-6 py-3 text-center">
+              <h2 className="text-base sm:text-lg font-bold text-[#0c344e] tracking-wide">
+                {isHindi ? 'संकाय प्रभारी' : 'Faculty In-Charge'}
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm text-gray-800 border-collapse">
+                <thead>
+                  <tr className="bg-[#002b49] text-white font-bold text-xs uppercase tracking-wider">
+                    <th className="py-3 px-4 w-16 text-center border-r border-white/20">Sr. No.</th>
+                    <th className="py-3 px-6 border-r border-white/20">Name</th>
+                    <th className="py-3 px-6 border-r border-white/20">Department</th>
+                    <th className="py-3 px-6 border-r border-white/20">Responsibility</th>
+                    <th className="py-3 px-6">Email</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {list.map((f, i) => (
+                    <tr key={f.id || i} className="hover:bg-gray-50/80 transition-colors">
+                      <td className="py-3.5 px-4 text-center font-sans text-gray-600 border-r border-gray-200 align-top">
+                        {f.sl_no || i + 1}
+                      </td>
+                      <td className="py-3.5 px-6 border-r border-gray-200 font-bold text-gray-900 align-top text-sm">
+                        {f.name}
+                      </td>
+                      <td className="py-3.5 px-6 border-r border-gray-200 text-gray-700 align-top">
+                        {f.departments || '--'}
+                      </td>
+                      <td className="py-3.5 px-6 border-r border-gray-200 font-semibold text-[#0c344e] align-top">
+                        {f.responsibility}
+                      </td>
+                      <td className="py-3.5 px-6 align-top">
+                        {f.email ? (
+                          <a
+                            href={`mailto:${f.email}`}
+                            className="text-[#631012] hover:text-[#800000] font-mono text-xs font-semibold hover:underline"
+                          >
+                            {f.email}
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">--</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </main>
-
-      
     </div>
   );
 }
